@@ -1,0 +1,115 @@
+<form [formGroup]="validationForm" (ngSubmit)="InsertUpdate(validationForm.value)" class="form">
+  <div class="row"><div class="col-12 popup-Header"> <h3><strong>{{titleText}}</strong></h3>
+    <div class="popup-line"></div>
+  </div></div>
+    <div mat-dialog-content>
+      <div class="row">
+        <div class="col-3 astricleftDiv"><label>Plant <span class="required">*</span></label></div>
+        <div class="col-9 pull-right">
+      <mat-form-field appearance="fill" [floatLabel]="'never'">
+        <mat-select placeholder="Select Plant" formControlName="plantId" (selectionChange)="plantSelectionChange($event.value)">
+          <mat-select-filter [displayMember]="'plantDesc'" [array]="plantListDataList" (filteredReturn)="plantListData = $event"></mat-select-filter>
+          <mat-option  *ngFor="let plantList of plantListData" [value]="plantList.plantId">
+            {{plantList.plantDesc}} ({{plantList.plantName}})
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="validationForm.controls['plantId'].errors?.required">
+          Plant is required
+        </mat-error>
+      </mat-form-field></div></div>
+      <div class="row">
+        <div class="col-3 astricleftDiv"><label>Line <span class="required">*</span></label></div>
+        <div class="col-9 pull-right">
+      <mat-form-field appearance="fill" [floatLabel]="'never'">
+        <mat-select placeholder="Select Line" formControlName="lineId" (selectionChange)="lineSelectionChange($event.value,false)">
+          <mat-select-filter [displayMember]="'lineName'" [array]="linesDataByPlantList" (filteredReturn)="linesDataByPlant = $event"></mat-select-filter>
+          <mat-option *ngFor="let line of linesDataByPlant" [value]="line.lineId">
+              {{line.lineName}}
+          </mat-option>
+      </mat-select>
+        <mat-error *ngIf="validationForm.controls['lineId'].errors?.required">
+          Line is required
+        </mat-error>
+      </mat-form-field></div></div>
+      <div class="row">
+        <div class="col-3 astricleftDiv"><label>Shift <span class="required">*</span></label></div>
+        <div class="col-9 pull-right">
+      <mat-form-field appearance="fill" [floatLabel]="'never'">
+        <mat-select  placeholder="Select Shift" formControlName="shiftId">
+          <mat-select-filter [displayMember]="'shiftName'" [array]="shiftListDataList" (filteredReturn)="shiftListData = $event"></mat-select-filter>
+          <mat-option *ngFor="let shiftList of shiftListData" [value]="shiftList.shiftId">
+            {{shiftList.shiftName}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="validationForm.controls['shiftId'].errors?.required">
+          Shift is required
+        </mat-error>
+      </mat-form-field></div></div>
+      <div class="row">
+        <p *ngIf="timezonemessage notimezone-para">There is no time zone for this Plant, Please refer to Manage Plants screen to setup timezone before creating shift.</p>
+        <div class="col-3 astricleftDiv"><label>Start Time  <span class="required">*</span></label>   </div>
+        <div class="col-9 pull-right">
+    <div class="label-margin-bottom">
+      <input class="inputBox" (blur)="timeFormatStart($event.target.value)" type="time" formControlName="startTime" required>
+          
+          <label *ngIf="plantTimeZone!=null">&nbsp; {{diplayplantTimeZone}}</label>
+          
+        <mat-error *ngIf="timeFormatFlag">hh:mm AM/PM format is required</mat-error>
+  </div></div></div>
+  <div class="row">
+    <div class="col-3 astricleftDiv"><label>Shift Duration <span class="required">*</span></label></div>
+    <div class="col-8 pull-right">
+      <div class="col-3 pull-left padding-duration">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="hh" formControlName="hours" (blur)="hoursSelectionChange($event.value)" (selectionChange)="hoursSelectionChange($event.value)">
+      <mat-option   [value]="1">1</mat-option>
+      <mat-option   [value]="2">2</mat-option>
+      <mat-option   [value]="3">3</mat-option>
+      <mat-option   [value]="4">4</mat-option>
+      <mat-option   [value]="5">5</mat-option>
+      <mat-option   [value]="6">6</mat-option>
+      <mat-option   [value]="7">7</mat-option>
+      <mat-option   [value]="8">8</mat-option>
+      <mat-option   [value]="9">9</mat-option>
+      <mat-option   [value]="10">10</mat-option>
+      <mat-option   [value]="11">11</mat-option>
+      <mat-option   [value]="12">12</mat-option>
+      <mat-option   [value]="24">24</mat-option>
+    </mat-select>
+  </mat-form-field><div class="hour-error" *ngIf="hourFlag">Hour is required</div></div>
+  <div class="col-3 pull-left">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="mm" formControlName="minutes" (selectionChange)="minutesSelectionChange($event.value)">
+      <mat-option   [value]="0">00</mat-option>
+      <mat-option   [value]="15">15</mat-option>
+      <mat-option   [value]="30">30</mat-option>
+      <mat-option   [value]="45">45</mat-option>
+    </mat-select>
+  </mat-form-field><div class="hour-error">{{minuteValMessage}}</div></div>
+</div></div>
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>End Time </label>   </div>
+      <div class="col-9 pull-right">
+    <div>
+      <input class="endTime" readonly type="time" formControlName="endTime" required>
+      
+      <label *ngIf="plantTimeZone!=null" class="displayzone">{{diplayplantTimeZone}}   &nbsp;{{endTimeDay}}</label>
+      
+</div></div></div>
+<div  class="label-margin-top">
+  <p class="para">Note: Please refer to Manage Plants screen to adjust timezone, if required.</p>
+</div>
+      
+<div class="row" *ngIf="statusDiv">
+  <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label>   </div>
+  <div class="col-9 pull-right">   
+      <label class="switch">
+            <input type="checkbox" class="checkbox-height" [value]="data.active" formControlName="active">
+            <span class="slider round"></span>
+      </label>  </div></div>
+    </div>
+    <div mat-dialog-actions>
+      <button type="reset" (click)="onNoClick()" class="btn btn-reset action-btn" matTooltip="Click to Close"><mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close</button>
+      <button class="btn btn-save action-btn" [disabled]="validationForm.invalid || timezonemessage || btnFlag" type="submit" [mat-dialog-close]="1"><mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}</button>
+    </div>
+  </form>

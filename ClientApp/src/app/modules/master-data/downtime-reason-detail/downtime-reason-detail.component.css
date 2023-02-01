@@ -1,0 +1,96 @@
+table {
+  width: 100%;
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 100%;
+}
+
+td, th {
+  width: 25%;
+}
+.example-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+.modal-body{
+  padding-top: 15px !important;
+  margin-top: 0% !important;
+  margin-right: 4% !important;
+  margin-bottom: 4% !important;
+  margin-left: 4% !important;
+
+}
+.excel-align
+{
+  text-align: right !important;
+}
+.item-float
+{
+    float: right;
+}
+.example-header {
+  min-height: 64px;
+  padding: 8px 24px 0;
+}
+
+
+.mat-table {
+  overflow: auto;
+  max-height: 610px;
+}
+.mat-header-row{
+  background: #ef5350 !important;
+}
+.mat-header-cell
+{
+    color:#fff !important;
+    font-weight: bold !important;
+}
+.mat-sort-header-stem
+{
+  background-color:#fff !important;
+}
+.mat-sort-header-indicator 
+{
+  background-color:#fff !important;
+}
+.title
+{
+  font-size: 25px;
+    line-height: 1.42857;
+    color: black;
+    font-weight: 400;
+}
+.mat-row:nth-child(even){
+  background-color: #ffffff
+}
+      
+.mat-row:nth-child(odd){
+  background-color: #e4f0ec;
+}
+.mat-form-field-filter
+{
+  width: 47% !important;
+  padding-left: 17px !important;
+}
+.disable:hover{
+  cursor: not-allowed;
+  }
+  .disable:active{
+    pointer-events: none;
+    }
+    .excel-addbtn-align
+{
+  text-align: right !important;
+}
+.add-margin
+{
+  margin-right: 2% !important;
+}
+.btn-mat-icon
+{
+  margin-bottom: 16px !important;
+}

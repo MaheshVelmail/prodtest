@@ -1,0 +1,72 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<div class="main-content">
+  <div class="container-fluid">
+                 <!-- Add New Line -->
+                 <div class="item-float">
+                  <button matTooltip="Click to Add New LineDowntime" mat-mini-fab color="primary" (click)="addLine()" [hidden]="!canInsert"  [ngClass]="{'disable':!canInsert}">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+    <div class="example-header">
+      <mat-form-field class="mat-form-field-filter">
+        <input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+            <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+      </div>
+      <div class="example-container mat-elevation-z8">
+        <mat-table [dataSource]="dataSource" matSort>      
+          <!-- lineType Column -->
+          <ng-container matColumnDef="lineType">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Line Type </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.lineType}}</mat-cell>
+          </ng-container>
+      
+          <!-- downtimereasonTypeDesc Column -->
+          <ng-container matColumnDef="downtimereasonTypeDesc">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> DownTime Reason Type</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.downtimereasonTypeIdsDesc| slice:0:1}}<a (click)="showPopupDialog(row)" style="cursor: pointer;color: blue;">{{ row.downtimereasonTypeIdsDesc.length > 1 ? '....read more' : '' }}</a> </mat-cell>
+          </ng-container>
+    
+          <!-- status Column -->
+          <ng-container matColumnDef="active">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.active}} </mat-cell>
+          </ng-container>
+           <!-- action Column -->
+          <ng-container matColumnDef="action">
+            <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate" (click)="editLine(row)" [ngClass]="{'disable':!canUpdate}">
+                <mat-icon aria-label="Edit">edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="confirmDeleteDialog(row)"  [ngClass]="{'disable':!canDeleted}">
+                <mat-icon aria-label="Delete">delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+      
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;">
+          </mat-row>
+        </mat-table>
+      
+        <mat-paginator showFirstLastButtons="true" [pageSizeOptions]="[10, 15, 25, 100]"></mat-paginator>
+      </div>
+</div>
+  </div>
+  <!-- show popup for displaying downtimetype desc -->
+  <div bsModal #confirmModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+    <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+      <div class="modal-content">
+          <div class="modal-body">
+          <div mat-dialog-content>
+   
+            <h6>{{popup_downtimereasonTypeIdsDesc}}</h6>
+          </div>
+          <div mat-dialog-actions>
+            <button #cancelbtn type="button" autofocus (click)="cancelConfirm()" class="btn  no-btn-margin close-btn"><mat-icon class="icon">close</mat-icon>Close</button>
+          </div>
+          </div>
+        </div>
+      </div>
+  </div>

@@ -1,0 +1,25 @@
+tr{
+    width: none;
+}
+.hideBtn{
+    display: none!important;
+    float: left!important;
+}
+.displayBtn{
+    display: inline-block!important;
+    float: left!important;
+}
+.application-loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .application-loading-box {
+    width: 500px;
+    margin: 5px;
+    text-align: center;
+  }
+

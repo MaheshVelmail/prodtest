@@ -1,0 +1,60 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<div class="main-content">
+  <div class="container-fluid">
+                 <!-- Add New Line -->
+                 <div class="row">
+                   <div class="col-6">
+                    <mat-form-field class="mat-form-field-filter">
+                      <input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+                          <mat-icon matSuffix>search</mat-icon>
+                  </mat-form-field>
+                   </div>
+                
+                 <div class="excel-addbtn-align col-6">
+                  <button matTooltip="Click to Add Downtime Code" class="add-margin" mat-mini-fab color="primary"  (click)="addReason()" [hidden]="!canInsert"  [ngClass]="{'disable':!canInsert}">
+                    <mat-icon class="btn-mat-icon">add</mat-icon>
+                  </button>
+                  <a (click)="exportAsXLSX()" class="excel-cursor" matTooltip="Click to export"><i class="fa fa-file-excel-o excel-color" aria-hidden="true"></i></a>  
+                </div>
+              </div>
+    
+      <div class="example-container mat-elevation-z8">
+        <mat-table matTableExporter [dataSource]="dataSource" matSort>      
+           <!-- ReasonDesc Column -->
+           <ng-container matColumnDef="downtimeReasonCodeDesc">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Downtime Reason Code</mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.downtimeReasonCodeDesc}}</mat-cell>
+          </ng-container>
+          <!-- ReasonTypeDesc Column -->
+          <ng-container matColumnDef="downtimeReasonTypeDesc">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Downtime Reason Type</mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.downtimeReasonTypeDesc}}</mat-cell>
+          </ng-container>
+          <!-- status Column -->
+          <ng-container matColumnDef="active">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.active}} </mat-cell>
+          </ng-container>
+           <!-- action Column -->
+          <ng-container matColumnDef="action">
+            <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate" (click)="editReason(row)"  [ngClass]="{'disable':!canUpdate}">
+                <mat-icon aria-label="Edit">edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="confirmDeleteDialog(row)"  [ngClass]="{'disable':!canDeleted}">
+                <mat-icon (click)="confirmDeleteDialog(row)" aria-label="Delete">delete</mat-icon>
+              </button>
+            
+            </mat-cell>
+          </ng-container>
+      
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;">
+          </mat-row>
+        </mat-table>
+      
+        <mat-paginator showFirstLastButtons="true" [pageSizeOptions]="[10, 15, 25, 100]"></mat-paginator>
+      </div>
+</div>
+  </div>

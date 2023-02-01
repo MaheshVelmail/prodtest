@@ -1,0 +1,1100 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<mat-accordion>
+    <!-- #Start myPendingOEERequestregion -->
+    <mat-expansion-panel [expanded]="true" class="expansion-panel-padding" (opened)="panelOpenState = true"
+        (closed)="panelOpenState = false">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                My Pending OEE Requests
+            </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-tab-group (selectedTabChange)="onPendingOeeTabChange($event)">
+            <mat-tab label="By Super Package ({{bySuperPackageRequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="bySuperPackageRequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-excel-btn">
+                                <button (click)="saveOEERequest('pendingOeeRequests','BYSUPERPACKAGE')"
+                                    [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float"
+                                    mat-mini-fab color="primary">
+                                    <mat-icon style="cursor: pointer;">save</mat-icon>
+                                </button>
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="pendingOeeReqBySupfilterValueModel" (keyup)="MyOEERequestapplyFilter($event.target.value,'MyOEERequestBySuperPackage')"
+                                    placeholder="Filter">
+                                <mat-icon matSuffix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="myOEERequestSuperPackagedataSource"
+                            #superPackagesort="matSort" matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=1):this.value;" class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input  (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)" oninput="this.value>100?(this.value=100):this.value"
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}" min="0"
+                                                number required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('pendingOeeRequests',element,'BYSUPERPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                        <button  mat-icon-button matTooltip="Click to delete"
+                                        [hidden]="!canDeleted" (click)="DeleteConfirmed('pendingOeeRequests',element,'BYSUPERPACKAGE')" class="iconbutton" color="primary">
+                                        <mat-icon aria-label="Delete">delete</mat-icon></button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('pendingOeeRequests',element,'BYSUPERPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button *ngIf="!element.editable" [hidden]="!canApprove" mat-icon-button
+                                        matTooltip="Click to Approve"
+                                        (click)="approveRejectOEERequest('approve',element,'BYSUPERPACKAGE')"
+                                        class="iconbutton" color="primary">
+                                        <mat-icon aria-label="Edit">done_outline</mat-icon>
+                                    </button>
+                                    <button *ngIf="!element.editable" [hidden]="!canReject" mat-icon-button
+                                        matTooltip="Click to Reject"
+                                        (click)="approveRejectOEERequest('reject',element,'BYSUPERPACKAGE')"
+                                        class="iconbutton" color="primary">
+                                        <mat-icon aria-label="Edit">highlight_off</mat-icon>
+                                    </button>
+                                    
+
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="BySuperPackagecolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: BySuperPackagecolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #superPackagepaginator [pageSizeOptions]="[5,10,15,25]" showFirstLastButtons>
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="bySuperPackageRequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+            <mat-tab label="By Package ({{byPackageRequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="byPackageRequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-excel-btn">
+                                <button (click)="saveOEERequest('pendingOeeRequests','BYPACKAGE')"
+                                [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float" mat-mini-fab
+                                    color="primary">
+                                    <mat-icon style="cursor: pointer;">save</mat-icon>
+                                </button>
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="pendingOeeReqByPacfilterValueModel" (keyup)="MyOEERequestapplyFilter($event.target.value,'MyOEERequestByPackage')"
+                                    placeholder="Filter">
+                                <mat-icon matPrefix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="myOEERequestPackagedataSource"
+                            #packagesort="matSort" matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="package">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.package}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=1):this.value;" class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input  (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                oninput="this.value>100?(this.value=100):this.value"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)" 
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}"min="0" required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('pendingOeeRequests',element,'BYPACKAGE')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                        <button  mat-icon-button matTooltip="Click to delete"
+                        [hidden]="!canDeleted" (click)="DeleteConfirmed('pendingOeeRequests',element,'BYPACKAGE')" class="iconbutton" color="primary">
+                        <mat-icon aria-label="Delete">delete</mat-icon></button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('pendingOeeRequests',element,'BYPACKAGE')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button *ngIf="!element.editable" [hidden]="!canApprove" mat-icon-button
+                                        matTooltip="Click to Approve"
+                                        (click)="approveRejectOEERequest('approve',element,'BYPACKAGE')"
+                                        class="iconbutton" color="primary">
+                                        <mat-icon aria-label="Edit">done_outline</mat-icon>
+                                    </button>
+                                    <button *ngIf="!element.editable" [hidden]="!canReject" mat-icon-button
+                                        matTooltip="Click to Reject"
+                                        (click)="approveRejectOEERequest('reject',element,'BYPACKAGE')"
+                                        class="iconbutton" color="primary">
+                                        <mat-icon aria-label="Edit">highlight_off</mat-icon>
+                                    </button>
+
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="ByPackagecolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: ByPackagecolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #packagepaginator [pageSizeOptions]="[5,10,15,25]" showFirstLastButtons>
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="byPackageRequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+            <mat-tab label="By SKU ({{bySKURequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="bySKURequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-excel-btn">
+                                <button (click)="saveOEERequest('pendingOeeRequests','BYSKU')"
+                                [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float" mat-mini-fab
+                                    color="primary">
+                                    <mat-icon style="cursor: pointer;">save</mat-icon>
+                                </button>
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="pendingOeeReqBySkufilterValueModel"  (keyup)="MyOEERequestapplyFilter($event.target.value,'MyOEERequestBySku')"
+                                    placeholder="Filter">
+                                <mat-icon matPrefix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="myOEERequestSKUdataSource" #skusort="matSort"
+                            matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="productCode">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    SKU
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.productCode}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="productDesc">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Product Description
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.productDesc}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="package">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.package}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=1):this.value;" class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input  (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                oninput="this.value>100?(this.value=100):this.value"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)"
+                                                
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}" min="0" required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('pendingOeeRequests',element,'BYSKU')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                        <button  mat-icon-button matTooltip="Click to delete"
+                        [hidden]="!canDeleted" (click)="DeleteConfirmed('pendingOeeRequests',element,'BYSKU')" class="iconbutton" color="primary">
+                        <mat-icon aria-label="Delete">delete</mat-icon></button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('pendingOeeRequests',element,'BYSKU')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button *ngIf="!element.editable" [hidden]="!canApprove" mat-icon-button
+                                        matTooltip="Click to Approve"
+                                        (click)="approveRejectOEERequest('approve',element,'BYSKU')" class="iconbutton"
+                                        color="primary">
+                                        <mat-icon aria-label="Edit">done_outline</mat-icon>
+                                    </button>
+                                    <button *ngIf="!element.editable" [hidden]="!canReject" mat-icon-button
+                                        matTooltip="Click to Reject"
+                                        (click)="approveRejectOEERequest('reject',element,'BYSKU')" class="iconbutton"
+                                        color="primary">
+                                        <mat-icon aria-label="Edit">highlight_off</mat-icon>
+                                    </button>
+
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="BySKUcolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: BySKUcolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #skupaginator [pageSizeOptions]="[5,10,15,25]" showFirstLastButtons></mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="bySKURequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+        </mat-tab-group>
+    </mat-expansion-panel>
+    <!-- #end myPendingOEERequestregion -->
+    <!-- #Start OEERequestForNextYearregion -->
+    <mat-expansion-panel (opened)="panelOpenState = true" (closed)="panelOpenState = false">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                OEE Requests For Next Year
+            </mat-panel-title>
+            
+        </mat-expansion-panel-header>
+        <mat-tab-group (selectedTabChange)="onOeeRequestsForNextYearTabChange($event)">
+            <mat-tab label="By Super Package ({{bySuperPackageNextYearRequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="bySuperPackageNextYearRequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-oee-excel-btn">
+                                <button (click)="saveOEERequest('OeeRequestsForNextYr','BYSUPERPACKAGE')"
+                                [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float save-excel-margin" mat-mini-fab
+                                    color="primary">
+                                    <mat-icon style="cursor: pointer;" class="btn-mat-icon">save</mat-icon>
+                                </button>
+                                <a (click)="exportAsXLSX('OeeRequestsForNextYr','BYSUPERPACKAGE')" class="excel-cursor" matTooltip="Click to export"><i aria-hidden="true" class="fa fa-file-excel-o excel-color" aria-hidden="true"></i></a> 
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="nextYrOeeReqBySupfilterValueModel" 
+                                    (keyup)="MyOEERequestapplyFilter($event.target.value,'oEERequestsForNextYearBySuperPackage')"
+                                    placeholder="Filter">
+                                <mat-icon matPrefix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="oEERequestsForNextYearSuperPackagedataSource"
+                            #oEERequestsForNextYearsuperPackagesort="matSort" matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                                 class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                oninput="this.value>100?(this.value=100):this.value"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)" 
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}" min="0" required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('OeeRequestsForNextYr',element,'BYSUPERPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('OeeRequestsForNextYr',element,'BYSUPERPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button  mat-icon-button matTooltip="Click to delete"
+                        [hidden]="!canDeleted" (click)="DeleteConfirmed('OeeRequestForNextYr',element,'BYSUPERPACKAGE')">
+                        <mat-icon aria-label="Delete">delete</mat-icon>
+                      </button>
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="BySuperPackagecolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: BySuperPackagecolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #oEERequestsForNextYearsuperPackagepaginator [pageSizeOptions]="[5,10,15,25]"
+                            showFirstLastButtons></mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="bySuperPackageNextYearRequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+            <mat-tab label="By Package ({{byPackageNextYearRequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="byPackageNextYearRequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-oee-excel-btn">
+                                <button (click)="saveOEERequest('OeeRequestsForNextYr','BYPACKAGE')"
+                                [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float save-excel-margin" mat-mini-fab
+                                    color="primary">
+                                    <mat-icon style="cursor: pointer;" class="btn-mat-icon">save</mat-icon>
+                                </button>
+                                <a (click)="exportAsXLSX('OeeRequestsForNextYr','BYPACKAGE')" class="excel-cursor" matTooltip="Click to export"><i aria-hidden="true" class="fa fa-file-excel-o excel-color" aria-hidden="true"></i></a> 
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="nextYrOeeReqByPacfilterValueModel"  (keyup)="MyOEERequestapplyFilter($event.target.value,'oEERequestsForNextYearByPackage')"
+                                    placeholder="Filter">
+                                <mat-icon matPrefix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="oEERequestsForNextYearPackagedataSource"
+                            #oEERequestsForNextYearpackagesort="matSort" matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="package">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.package}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=1):this.value;" class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input  (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                oninput="this.value>100?(this.value=100):this.value"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)"
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}" min="0" required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('OeeRequestsForNextYr',element,'BYPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('OeeRequestsForNextYr',element,'BYPACKAGE')"
+                                            class="iconbutton" color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button  mat-icon-button matTooltip="Click to delete"
+                        [hidden]="!canDeleted" (click)="DeleteConfirmed('OeeRequestForNextYr',element,'BYPACKAGE')">
+                        <mat-icon aria-label="Delete">delete</mat-icon>
+                      </button>
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="ByPackagecolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: ByPackagecolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #oEERequestsForNextYearpackagepaginator [pageSizeOptions]="[5,10,15,25]"
+                            showFirstLastButtons></mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="byPackageNextYearRequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+            <mat-tab label="By SKU ({{bySKUNextYearRequestCount}})">
+                <div class="example-container mat-elevation-z8">
+                    <div *ngIf="bySKUNextYearRequestCount!=0">
+                        <div class="example-header">
+                            <div class="save-oee-excel-btn">
+                                <button (click)="saveOEERequest('OeeRequestsForNextYr','BYSKU')"
+                                   [disabled]="disablesavebtn" matTooltip="Click to Save" class="margin-left btn-float save-excel-margin" mat-mini-fab
+                                    color="primary">
+                                    <mat-icon style="cursor: pointer;" class="btn-mat-icon">save</mat-icon>
+                                </button>
+                                <a (click)="exportAsXLSX('OeeRequestsForNextYr','BYSKU')" class="excel-cursor" matTooltip="Click to export"><i aria-hidden="true" class="fa fa-file-excel-o excel-color" aria-hidden="true"></i></a> 
+                            </div>
+                            <mat-form-field class="mat-form-field-filter">
+                                <input matInput [(ngModel)]="nextYrOeeReqBySkufilterValueModel"  (keyup)="MyOEERequestapplyFilter($event.target.value,'oEERequestsForNextYearBySku')"
+                                    placeholder="Filter">
+                                <mat-icon matPrefix>search</mat-icon>
+                            </mat-form-field>
+                            <label class="label-text-danger" *ngIf="showValidationMessage">*Please enter correct
+                                value</label>
+                        </div>
+                        <mat-table class="mat-elevation-z8" [dataSource]="oEERequestsForNextYearSKUdataSource"
+                            #oEERequestsForNextYearskusort="matSort" matSort>
+                            <ng-container matColumnDef="plantName">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Plant/Line
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.plantDesc}}({{r.plantName}})
+                                    /{{r.lineName}} </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestor">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requester
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestor}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="productCode">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    SKU
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.productCode}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="productDesc">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Product Description
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.productDesc}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="package">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.package}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="superPackage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Super Package
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHourCapacity">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Capacity
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHourCapacity}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=1):this.value;" class="form-control input"
+                                                #casePerHourCapacity="ngModel" name="casePerHourCapacity{{i}}"
+                                                [ngModel]="r.casePerHourCapacity"
+                                                (change)="casePerHourmethod(r,'casePerHourCapacity',$event)"
+                                                value="{{r.casePerHourCapacity}}" min="1" required>
+                                            <div *ngIf="casePerHourCapacity.invalid || r.casePerHourCapacity<1">
+                                                min value should be 1.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="planPercentage">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    % Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.planPercentage}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group"
+                                            [class.text-danger]="planPercentage.invalid  ||r.planPercentage>100 || r.planPercentage<0">
+                                            <input  (keyup.enter)="r.editable = false" type="number"
+                                                class="form-control input" #planPercentage="ngModel"
+                                                name="planPercentage{{i}}" [(ngModel)]="r.planPercentage"
+                                                oninput="this.value>100?(this.value=100):this.value"
+                                                (change)="casePerHourmethod(r,'planPercentage',$event)" 
+                                                value="{{calPlanPercentage(r)}}" min="0" required>
+                                            <div *ngIf="planPercentage.invalid">
+                                                value should be between 0 and 100.
+                                            </div>
+                                            <div *ngIf="r.planPercentage>100 || r.planPercentage<0">
+                                                value should be between 0 and 100.
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="casePerHour">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Case/hr Plan
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;">
+                                    <span *ngIf="!r.editable; else editPlace">
+                                        {{r.casePerHour}}
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <div class="form-group" [class.text-danger]="casePerHour.invalid">
+                                            <input (keyup.enter)="r.editable = false;" type="number"
+                                            oninput="this.value<0?(this.value=0):this.value;" class="form-control input"
+                                                #casePerHour="ngModel" name="casePerHour{{i}}"
+                                                [(ngModel)]="r.casePerHour"
+                                                (change)="casePerHourmethod(r,'casePerHour',$event)"
+                                                value="{{calCasePerHour(r)}}" min="0"required>
+                                            <div *ngIf="casePerHour.invalid">
+                                                min value should be 0
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="requestedOn">
+                                <mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Requested On
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let r; let i = index;"> {{r.requestedOn}}</mat-cell>
+                            </ng-container>
+                            <ng-container matColumnDef="action">
+                                <mat-header-cell *matHeaderCellDef>Action
+                                </mat-header-cell>
+                                <mat-cell *matCellDef="let element">
+                                    <span *ngIf="!element.editable; else editPlace">
+                                        <button mat-icon-button matTooltip="Click to Edit" [hidden]="!canUpdate"
+                                            (click)="edit('OeeRequestsForNextYr',element,'BYSKU')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">edit</mat-icon>
+                                        </button>
+                                    </span>
+                                    <ng-template #editPlace>
+                                        <button mat-icon-button matTooltip="Click to Undo"
+                                            (click)="undo('OeeRequestsForNextYr',element,'BYSKU')" class="iconbutton"
+                                            color="primary">
+                                            <mat-icon aria-label="Edit">undo</mat-icon>
+                                        </button>
+                                    </ng-template>
+                                    <button  mat-icon-button matTooltip="Click to delete"
+                        [hidden]="!canDeleted" (click)="DeleteConfirmed('OeeRequestForNextYr',element,'BYSKU')">
+                        <mat-icon aria-label="Delete">delete</mat-icon>
+                      </button>
+                                </mat-cell>
+                            </ng-container>
+                            <mat-header-row *matHeaderRowDef="BySKUcolumnList"></mat-header-row>
+                            <mat-row *matRowDef="let row; columns: BySKUcolumnList; let i = index;"
+                                [ngClass]="{'make-gold': (row.editable)==true}">
+                            </mat-row>
+                        </mat-table>
+                        <mat-paginator #oEERequestsForNextYearskupaginator [pageSizeOptions]="[5,10,15,25]"
+                            showFirstLastButtons></mat-paginator>
+                    </div>
+                </div>
+                <div class="no-data" *ngIf="bySKUNextYearRequestCount==0">{{noRequestMsg}}</div>
+            </mat-tab>
+        </mat-tab-group>
+    </mat-expansion-panel>
+    <!-- #End OEERequestForNextYearregion -->
+</mat-accordion>
+<!--#start rerejectOeeRequest -->
+<form [formGroup]="oeeRequestRecjectionForm" (ngSubmit)="rejectOeeRequest(oeeRequestRecjectionForm.value)"   class="form">
+    <div bsModal #rejectionModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+        aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+        <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><strong class="title-font">Please specify reason for rejection</strong></h3>
+                </div>
+                <div class="popup-line"></div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="row">
+                                <mat-form-field>
+                                    <textarea matInput formControlName="comments"></textarea>
+                                    <mat-error *ngIf="oeeRequestRecjectionForm.controls['comments'].errors?.required">
+                                        Rejection reason is <strong>required</strong>
+                                    </mat-error>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                        <div mat-dialog-actions>
+                            <button type="reset" (click)="oncloseClick()" class="btn btn-reset action-btn"
+                                matTooltip="Click to Close">
+                                <mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close
+                            </button>
+                            <button type="button" [disabled]="!oeeRequestRecjectionForm.valid" type="submit" class="btn btn-save action-btn">
+                                Submit</button>
+                            
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!--#End rerejectOeeRequest -->
+<!--#start confirmation dialog -->
+<div bsModal #deleteOEEConfirmationModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+  aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+  <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+    <div class="modal-content oee-delete-confirm">
+          <div class="modal-body">
+            <div mat-dialog-content>
+              <h1 mat-dialog-title>Confirmation?</h1>
+              <h4>{{deleteOeeRequestMsg}}</h4>
+            </div>
+            <div mat-dialog-actions>
+              <button #cancelbtn class="btn btn-info no-btn-margin"
+                (click)="onCloseclick()">
+                <mat-icon>close</mat-icon>No
+              </button>
+              <button class="btn btn-danger" (click)="confirmedForDeleteOee()">
+                <mat-icon>done</mat-icon>Yes
+              </button>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+<!--#end confirmation dialog -->

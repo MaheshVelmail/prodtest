@@ -1,0 +1,6 @@
+<div class="overlay" *ngIf="spinnerService.visibility | async"><mat-progress-spinner [diameter]="50" *ngIf="spinnerService.visibility | async"
+        class="spinnerClass"
+        [color]="color"
+        [mode]="mode"
+        [value]="value">
+</mat-progress-spinner></div>

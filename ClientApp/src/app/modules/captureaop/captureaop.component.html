@@ -1,0 +1,403 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="example-button-container">
+            <div class="row">
+                <div class="col-2">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select placeholder="Select Plant" [(ngModel)]="selectedplant" (selectionChange)="getAlldata()"
+                            name="plant">
+                            <mat-select-filter [displayMember]="'plantDesc'" [array]="plantTypeDataList" (filteredReturn)="plantlist = $event"></mat-select-filter>
+                            <mat-option *ngFor="let plant of plantlist" [value]="plant.plantId">
+                                {{plant.plantDesc}} ({{plant.plantName}})
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-2">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select placeholder="Select Year" [(ngModel)]="selectedyear" (selectionChange)="getAlldata()" name="year">
+                            <mat-option *ngFor="let year of yearListData" [value]="year">
+                                {{year}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-2">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select placeholder="Select Month" [(ngModel)]="selectedmonth" (selectionChange)="getAlldata()"
+                            name="month">
+                            <mat-option *ngFor="let month of monthList" [value]="month.monthValue">
+                                {{month.monthName}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-6 excel-addbtn-align">
+                    <button (click)="addAOP('','addAOP')" mat-mini-fab color="primary" [hidden]="!canInsert || !allowEditing" [disabled]="disableAddbtn"
+                        [ngClass]="{'disable':!canInsert}" class="add-margin" matTooltip="Click to Add New Package">
+                        <mat-icon style="cursor: pointer;" class="btn-mat-icon">add</mat-icon>
+                    </button>
+                        <a (click)="exportAsXLSX()" class="excel-cursor" matTooltip="Click to export"><i aria-hidden="true" class="fa fa-file-excel-o excel-color" aria-hidden="true"></i></a>  
+                </div>
+            </div>
+
+        </div>
+        <div class="example-header">
+            <mat-form-field class="mat-form-field-filter">
+                <input class="remove-border" [(ngModel)]="filterValueModel" matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+        </div>
+        <div class="example-container mat-elevation-z8">
+            <mat-table #exporter="matTableExporter" matTableExporter class="mat-elevation-z8" [dataSource]="dataSource" matSort>
+                <ng-container matColumnDef="superPackage">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Super Package
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.superPackage}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="productCode">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Product Code
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.productCode}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="productDesc">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Product Description
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.productDesc}}</mat-cell>
+
+                </ng-container>
+                <ng-container matColumnDef="planCaseQuantity">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Plan Case Quantity
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.planCaseQuantity}}</mat-cell>
+
+                </ng-container>
+
+                <ng-container matColumnDef="action">
+                    <mat-header-cell *matHeaderCellDef>Action
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let element">
+                            <button mat-icon-button matTooltip="Click to Edit" (click)="addAOP(element,'editAOP')"
+                                class="iconbutton" color="primary" [hidden]="!canUpdate" [disabled]="!allowEditing"
+                                >
+                                <mat-icon aria-label="Edit">edit</mat-icon>
+                            </button>
+                    </mat-cell>
+                </ng-container>
+                <mat-header-row *matHeaderRowDef="columnList"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: columnList; let i = index;"
+                    [ngClass]="{'make-gold': (row.editable)==true}">
+                </mat-row>
+            </mat-table>
+            <mat-paginator [pageSizeOptions]="[10,15,25, 100]" showFirstLastButtons></mat-paginator>
+        </div>
+    </div>
+</div>
+
+<!--Add New SKU dialog box-->
+<form [formGroup]="validationForm" (ngSubmit)="AddUpdateAOP(validationForm.value)" class="form">
+    <div bsModal #addeditModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+        aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+        <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="dialog-child-name" class="modal-title pull-left label-text-color heading-label-aop">{{AopViewHeading}} - {{selectedyear}} AOP for {{plantDesc}}</h4>
+                </div>
+                <div class="popup-line"></div>
+                <div class="modal-body">
+                    <div class="form-group row" [hidden]="disableSearch">
+
+                        <div class="col-sm-12 row ">
+                            <div class="col-sm-10 searchbox-padding-top">
+                                <input formControlName="displayAopVolume" id="displayAopVolume" type="text"
+                                    class="form-control searchtextbox input-form-control input" (keydown.enter)="$event.preventDefault()" (keyup.enter)="searchAopVolume()"
+                                    autocomplete="off" placeholder="Please enter Super Package or Product Code to search">
+                                <div *ngIf="(validationForm.controls['displayAopVolume'].touched || submitted) && validationForm.controls['displayAopVolume'].invalid"
+                                    class="search-alert-danger">
+                                    <div *ngIf="validationForm.controls['displayAopVolume'].errors.required">Product
+                                        code or Super Package is required.
+                                    </div>
+                                </div>
+                                <div class="loader-user" [style.display]="isProductCodeVisible"><img
+                                    alt=""  src="./../../../assets/img/smallspinner.gif"></div>
+                                <div tabindex="0" class="searchcontent" [style.display]="isProductCodeContainerVisible">
+                                    <div #loadingproductCodediv *ngFor="let data of searchedAopVolumeData">
+                                        <div #searchproductCodeDivContent class="search-item"
+                                            (click)="selectedAopVolume(data)" *ngIf="data!=null">{{data.productCode}} ({{data.productDesc}}) ({{data.superPackage}})
+                                        </div>
+                                    </div>
+                                    <div *ngIf="norecords">
+                                        <p class="p-marin">No record available!<span class="cross"
+                                            title="Click to close" (click)="aopVolume_select_cross()">&#10006;</span></p> 
+                                            <strong>Possible reasons:</strong><br>
+                                 &nbsp; 1. Invalid Super Package or Product Code. <br>  
+                                 &nbsp; 2. <strong>{{selectedyear}} </strong>AOP for <strong>{{plantDesc}}</strong> already catptured. Please double check.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2 margin-left">
+                                <button #resetbtn type="button"
+                                    [disabled]="validationForm.controls['displayAopVolume'].invalid"
+                                    class="btn search-btn-color action-btn mat-icon-button"(click)="searchAopVolume()">
+                                    <mat-icon>search</mat-icon></button>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row aop-details-margin" [hidden]="showSelectedAop">
+                        <label for="superPackage" class="col-sm-3 col-form-label label-text-color">Super Package</label>
+                        <div class="col-sm-8">
+                            <input type="text" readonly class="form-control-plaintext" formControlName="superPackage">
+                        </div>
+                    </div>
+                    <div class="form-group row aop-details-margin" [hidden]="showSelectedAop">
+                        <label for="productCode" class="col-sm-3 col-form-label label-text-color">Product Code</label>
+                        <div class="col-sm-8">
+                            <input type="text" readonly class="form-control-plaintext" formControlName="productCode">
+                        </div>
+                    </div>
+                    <div class="form-group row aop-details-margin" [hidden]="showSelectedAop">
+                        <label for="productDesc" class="col-sm-3 col-form-label label-text-color">Product Desc</label>
+                        <div class="col-sm-8">
+                            <input type="text" readonly class="form-control-plaintext" formControlName="productDesc">
+                        </div>
+                    </div>
+                    <div class="form-group row aop-details-margin" [hidden]="disableSearch">
+                        <label for="autoFill" class="col-sm-5 col-form-label label-text-color">Auto Fill From
+                            Previous Year</label>
+                        <div class="col-1 checkbox-scale">
+                            <mat-checkbox #checkbox [checked]="isAutoFillChecked" [disabled]="disableCheckbox"class="btn-block" labelPosition="before" (change)="autoFill(checkbox.checked)">
+                            </mat-checkbox>
+                        </div>
+                        <label class="lable-last-year-data" [hidden]="isNoDataForLastyr"> <strong>{{noDataForLastYr}} </strong></label>
+                    </div>
+                    <div class="form-group row">
+                        <label for="jan" class="col-1 col-form-label label-text-color">
+                            JAN</label>
+                        <div class="col-2">
+                            <input formControlName="jan" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['jan'].touched || submitted) && validationForm.controls['jan'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['jan'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['jan'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['jan'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="feb" class="col-1 col-form-label label-text-color">
+                            FEB</label>
+                        <div class="col-2">
+                            <input formControlName="feb" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['feb'].touched || submitted) && validationForm.controls['feb'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['feb'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['feb'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['feb'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="mar" class="col-1 col-form-label label-text-color">
+                            MAR</label>
+                        <div class="col-2">
+                            <input formControlName="mar" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['mar'].touched || submitted) && validationForm.controls['mar'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['mar'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['mar'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['mar'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="apr" class="col-1 col-form-label label-text-color">
+                            APR</label>
+                        <div class="col-2">
+                            <input formControlName="apr" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['apr'].touched || submitted) && validationForm.controls['apr'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['apr'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['apr'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['apr'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="may" class="col-1 col-form-label label-text-color">
+                            MAY</label>
+                        <div class="col-2">
+                            <input formControlName="may" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['may'].touched || submitted) && validationForm.controls['may'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['may'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['may'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['may'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="jun" class="col-1 col-form-label label-text-color">
+                            JUN</label>
+                        <div class="col-2">
+                            <input formControlName="jun" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['jun'].touched || submitted) && validationForm.controls['jun'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['jun'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['jun'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['jun'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="jul" class="col-1 col-form-label label-text-color">
+                            JUL</label>
+                        <div class="col-2">
+                            <input formControlName="jul" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['jul'].touched || submitted) && validationForm.controls['jul'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['jul'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['jul'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['jul'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="aug" class="col-1 col-form-label label-text-color">
+                            AUG</label>
+                        <div class="col-2">
+                            <input formControlName="aug" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['aug'].touched || submitted) && validationForm.controls['aug'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['aug'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['aug'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['aug'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="sep" class="col-sm-1 col-form-label label-text-color">
+                            SEP</label>
+                        <div class="col-2">
+                            <input formControlName="sep" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['sep'].touched || submitted) && validationForm.controls['sep'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['sep'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['sep'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['sep'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="oct" class="col-1 col-form-label label-text-color">
+                            OCT</label>
+                        <div class="col-2">
+                            <input formControlName="oct"  max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['oct'].touched || submitted) && validationForm.controls['oct'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['oct'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['oct'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['oct'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="nov" class="col-1 col-form-label label-text-color">
+                            NOV</label>
+                        <div class="col-2">
+                            <input formControlName="nov" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value" class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['nov'].touched || submitted) && validationForm.controls['nov'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['nov'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['nov'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['nov'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+                        <label for="dec" class="col-1 col-form-label label-text-color">
+                            DEC</label>
+                        <div class="col-2">
+                            <input formControlName="dec" max="9999999.99"  type="number" oninput="this.value<0?(this.value=0):this.value"  class="form-control input-form-control">
+                            <div *ngIf="(validationForm.controls['dec'].touched || submitted) && validationForm.controls['dec'].invalid"
+                                class="alert alert-danger">
+                                <div *ngIf="validationForm.controls['dec'].errors.required">
+                                    Required.</div>
+                                <div *ngIf="validationForm.controls['dec'].errors.min">
+                                    Invalid.</div>
+                                    <div *ngIf="validationForm.controls['dec'].errors.max">
+                                        <p>Max allowed</p>
+                                       <p>9999999.99.</p>
+                                    </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="row mrgbtm upper-margin btn-position-modal">
+                        <div>
+                            <span *ngIf="addView==true; else editView">
+                                <button matTooltip="Click to reset" #resetbtn type="button" (click)="resetAddControls()"
+                                                            class="btn btn-reset action-btn"><mat-icon>restore</mat-icon>&nbsp; Reset</button>
+                            </span>
+                            <ng-template #editView>
+                                <button matTooltip="Click to reset" #resetbtn type="button" (click)="resetEditControls()"
+                                                            class="btn btn-reset action-btn"><mat-icon>restore</mat-icon>&nbsp; Reset</button>
+                            </ng-template>
+                            <button type="button" (click)="cancelModal()" matTooltip="Click to Cancel"
+                                class="btn  btn-reset action-btn"><mat-icon>close</mat-icon>&nbsp; Cancel</button>
+                            <button matTooltip="Click to Save" type="button" type="submit" [disabled]="validationForm.invalid" class="btn btn-save action-btn"><mat-icon>save</mat-icon>&nbsp; Save</button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+

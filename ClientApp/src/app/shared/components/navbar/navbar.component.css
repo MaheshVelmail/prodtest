@@ -1,0 +1,32 @@
+.refesh{
+    cursor: pointer;
+}
+.title-lable
+{
+    font-size: 20px;
+    color: green;
+    font-weight: bold;
+}
+.navbar.navbar-transparent {
+    padding-top: 5px !important;
+}
+.text-color
+{
+    font-weight: bold;
+    color: black !important;
+}
+.mat-menu
+{
+    margin: 20px !important;
+}
+.user-name
+{
+    font-size: 17px !important;
+    font-weight: bold !important;
+    color: darkslategrey !important;
+    font-family: Roboto, "Helvetica Neue", sans-serif !important;
+}
+.user-logout-margin
+{
+    margin-left: 1% !important;
+}

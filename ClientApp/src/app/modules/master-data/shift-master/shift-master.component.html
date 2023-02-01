@@ -1,0 +1,72 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+
+<div class="main-content">
+    <div class=" item-float">
+        <button (click)="addShift()"  mat-mini-fab color="primary" [hidden]="!canInsert" [ngClass]="{'disable':!canInsert}"
+            matTooltip="Click to Add New Shift">
+            <mat-icon style="cursor: pointer;">add</mat-icon>
+        </button>
+    </div>
+    <div class="container-fluid">
+        <div class="example-header">
+            <mat-form-field class="mat-form-field-filter">
+                <input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+        </div>
+
+        <div class="example-container mat-elevation-z8">
+            <mat-table class="mat-elevation-z8" [dataSource]="dataSource" matSort>
+                <ng-container matColumnDef="plantName">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Plant
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.plantName}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="lineName">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Line
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.lineName}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="shiftName">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Shift
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.shiftName}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="shiftDisplayTime">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Shift Timing
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.shiftDisplayTime}}</mat-cell>
+                </ng-container>
+                 <!-- status Column -->
+          <ng-container matColumnDef="active">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.active}} </mat-cell>
+          </ng-container>
+                <!-- action Column -->
+          <ng-container matColumnDef="action">
+            <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              
+              <button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate" (click)="editShift(row)"  [ngClass]="{'disable':!canUpdate}">
+                <mat-icon aria-label="Edit">edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="confirmDeleteDialog(row)"  [ngClass]="{'disable':!canDeleted}">
+                <mat-icon (click)="confirmDeleteDialog(row)" aria-label="Delete">delete</mat-icon>
+              </button>
+            
+            
+            </mat-cell>
+          </ng-container>
+                <mat-header-row *matHeaderRowDef="columnList"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: columnList; let i = index;"
+                    [ngClass]="{'make-gold': (row.editable)==true}">
+                </mat-row>
+            </mat-table>
+            <mat-paginator [pageSizeOptions]="[10, 15,25,100]" showFirstLastButtons></mat-paginator>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+<div>
+    <a href="#">
+            <img alt="" class="logo-title" src="/assets/img/pt_logo_title.png"/>
+    </a>
+</div>
+<div class="sidebar-wrapper">
+  <div *ngIf="isMobileMenu()">
+    
+    
+  </div>
+    
+      <mat-nav-list style="display:block!important ;" disableRipple> 
+       <app-menu-list-item *ngFor="let item of menu" [item]="item"></app-menu-list-item>
+        
+      </mat-nav-list>
+    </div>

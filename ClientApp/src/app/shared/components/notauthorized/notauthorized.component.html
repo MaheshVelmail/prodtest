@@ -1,0 +1,13 @@
+<div id="notfound">
+    <div class="notfound">
+        <div>
+            <div class="notfound-404">
+                <h1>!</h1>
+            </div>
+            <h1>You are not authorized<br></h1>
+        </div>
+        <p *ngIf="!NoAccessMessage">{{message}}
+       <div *ngIf="NoAccessMessage">You are not authorized to access this site.<br/><br/> Please click <a href="mailto:Michael.Moffat@kdrp.com?cc=Nicholas.Caligiuri@kdrp.com;&subject=Production Tracker: Access Request&body=Please provide the following details: %0D%0A Plant Name: %0D%0A Role: %0D%0A GSN: (Need access)">here</a> to request the access.</div> 
+        <hr>        
+    </div>
+</div>

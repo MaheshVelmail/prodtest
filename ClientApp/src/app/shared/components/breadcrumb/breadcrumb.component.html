@@ -1,0 +1,28 @@
+<nav class='breadcrumb'>
+    
+    <div *ngFor="let breadcrumb of breadcrumbs; let isLastIndex=last">
+        <div *ngIf="breadcrumb.isClickable && !isLastIndex">
+            <a [routerLink]="breadcrumb.url" routerLinkActive="active" >
+                {{ breadcrumb.label }} &nbsp;&nbsp; <span *ngIf="!isLastIndex"> > </span> &nbsp;&nbsp;
+            </a>
+        </div>
+        <div *ngIf="!breadcrumb.isClickable || isLastIndex">
+            <span>{{ breadcrumb.label }}</span>  &nbsp;&nbsp; <span *ngIf="!isLastIndex"> > </span> &nbsp;&nbsp;
+           
+        </div>
+    </div>
+    <div class="marquee">
+        <p class="p-height">{{maintenanceMessage}}</p>
+    </div>
+    <div class="displayName-margin">
+       Welcome, <strong>{{displayName}}</strong> &nbsp;({{groupName}}) &nbsp;
+        [Last Login: {{lastLogin}}]
+        
+    </div>
+    </nav>
+
+
+
+
+
+  

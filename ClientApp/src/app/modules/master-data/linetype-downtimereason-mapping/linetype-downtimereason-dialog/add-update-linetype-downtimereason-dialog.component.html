@@ -1,0 +1,53 @@
+<form [formGroup]="formGroup" (ngSubmit)="InsertUpdateLine(formGroup.value)" class="form">
+  <div class="row"><div class="col-12 popup-Header"> <h3><strong>{{titleText}}</strong></h3>
+    <div class="popup-line"></div>
+  </div></div>
+  <div mat-dialog-content>     
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Line Type <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="Select Line Type"  formControlName="lineType" #lineypeSelect>
+      <mat-select-filter [displayMember]="'lineType'" [array]="lineTypeDataList" (filteredReturn)="lineTypeData = $event"></mat-select-filter>
+      <mat-option *ngFor="let linetype of lineTypeData" [value]="linetype.lineType">
+        {{linetype.lineType}}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="formGroup.controls['lineType'].errors?.required">
+      Line Type is required
+    </mat-error>
+  </mat-form-field></div></div>
+  <div class="row">
+    <div class="col-3 astricleftDiv"><label>Reason Type<span class="required">*</span></label></div>
+    <div class="col-9 pull-right">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="Select Reason Type" formControlName="downTimeReasonTypeIds" multiple #matSelect>
+      <div>
+      <button  type="button" mat-icon-button color="primary" (click)="matSelect.close()"><mat-icon>close</mat-icon>
+      </button>
+      <mat-select-filter [displayMember]="'downtimeReasonTypeDesc'" [array]="downtimeReasonTypeData" (filteredReturn)="downtimeReasonTypeDataList = $event">
+    
+      </mat-select-filter>
+    </div>
+    <mat-option #allSelected (click)="toggleAllSelection()"  [value]="0">All</mat-option>
+      <mat-option  [class.hide]="!isFiltered(downtimeReasonType)" (click)="tosslePerOne(allSelected.viewValue)"  *ngFor="let downtimeReasonType of downtimeReasonTypeData" [value]="downtimeReasonType.downtimeReasonTypeId">
+        {{downtimeReasonType.downtimeReasonTypeDesc}}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="formGroup.controls['downTimeReasonTypeIds'].errors?.required">
+      DowntimeReason Type is <strong>required</strong>
+    </mat-error>
+  </mat-form-field></div></div>
+      
+      <div class="row" *ngIf="statusDiv">
+        <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label>   </div> 
+        <div class="col-9 pull-right"><label class="switch">
+            <input type="checkbox" class="checkbox-height" [value]="data.active" formControlName="active">
+            <span class="slider round"></span>
+      </label></div></div>
+  </div>
+  <div mat-dialog-actions>
+    <button type="reset" (click)="onNoClick()" class="btn btn-reset action-btn" matTooltip="Click to Close"><mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close</button>
+    <button  class="btn btn-save action-btn" type="submit" [mat-dialog-close]="1"  [disabled]="!formGroup.valid"><mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}</button>
+  </div>
+</form>

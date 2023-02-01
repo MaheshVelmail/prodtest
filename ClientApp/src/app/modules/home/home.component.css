@@ -1,0 +1,205 @@
+.form-control-checkbox {
+    display: block;
+    width: 38%;
+    height: calc(1.5em + 0.875rem + 2px);
+    padding: 0.4375rem 0;
+    font-size: 0.5rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border: 1px solid #d2d2d2;
+    border-radius: 0;
+    box-shadow: none;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.label-text-danger {
+  color: #f44336 !important;
+}
+.margin-left
+{
+    margin-left: 2%;
+    margin-right: 2%;
+}
+table {
+    width: 100%;
+  }
+  
+  .mat-form-field {
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  /* td, th {
+    width: 25%;
+  } */
+  .example-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+  }
+  
+  .example-header {
+    min-height: 64px;
+    padding: 8px 24px 0;
+  }
+  
+ 
+  
+  .mat-table {
+    overflow: auto;
+    max-height: 500px;
+  }
+  .mat-header-row{
+    background: #ef5350 !important;
+  }
+  .mat-header-cell
+  {
+      color:#fff !important;
+      font-weight: bold !important;
+  }
+  .mat-sort-header-stem
+  {
+    background-color:#fff !important;
+  }
+  .mat-sort-header-indicator 
+  {
+    background-color:#fff !important;
+  }
+  .title
+  {
+    font-size: 25px;
+      line-height: 1.42857;
+      color: black;
+      font-weight: 400;
+  }
+  .make-gold {
+    background-color: lightgoldenrodyellow !important;
+}
+.mat-radio-button ~ .mat-radio-button {
+  margin-left: 16px;
+}
+.mat-row:nth-child(even){
+  background-color: #ffffff
+}
+      
+.mat-row:nth-child(odd){
+  background-color: #e4f0ec;
+}
+.save-excel-btn
+{
+  text-align: right;
+  float:right !important
+}
+.save-oee-excel-btn
+{
+  text-align: right;
+}
+.btn-mat-icon
+{
+  margin-bottom: 16px !important;
+}
+.mat-form-field-filter
+{
+  width:25%
+}
+.expansion-panel-padding
+{
+  /* padding-top: 6% !important; */
+}
+.mat-tab-label{
+    width: 10vw;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 1;
+    color: white;
+    background: #34292A !important;
+    background-color: #34292A !important; 
+}
+
+.mat-tab-label.mat-tab-label-active {
+    color: white;
+    background: #656666 !important;
+    opacity: 1;
+}
+.mat-expansion-panel-header-title, .mat-expansion-panel-header-description {
+  font-size: 25px;
+    line-height: 1.42857;
+    color: black;
+    font-weight: 400;
+}
+.no-data
+{
+  margin-top: 23px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.mat-expansion-panel-header-title
+{
+  font-size: 17px;
+    font-weight: bold;
+    color: darkslategrey;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+.mat-expansion-panel-body
+{
+  padding: 0 10px 10px 10px !important;
+}
+.mat-expansion-panel-header
+{
+  padding:2px 24px 10px 10px !important
+}
+.mat-column-action {
+  max-width: 12% !important;
+ 
+}
+.modal-header{
+  padding-top: 1px !important;
+  padding-right: 1px !important;
+  padding-bottom: 0px !important;
+  border-bottom: none !important;
+}
+.modal-body{
+  padding-top: 15px !important;
+  margin-top: 0% !important;
+  margin-right: 4% !important;
+  margin-bottom: 4% !important;
+  margin-left: 4% !important;
+
+}
+/* .modelbig{
+  max-width: 30%!important;
+} */
+.title-font
+{
+  font-size: 18px !important;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+-moz-appearance: none;
+ appearance: none;
+ margin: 0; 
+}
+.mat-icon-button.mat-primary {
+  color: black !important
+}
+.oee-delete-confirm
+{
+width: 100% !important;
+}
+.save-excel-margin
+{
+  position: absolute;
+    right: 0;
+}
+.mat-icon-button
+{
+width: 24px !important;
+}
+.excel-cursor
+{
+    /* float: right !important;
+    margin-right: 46px !important; */
+}

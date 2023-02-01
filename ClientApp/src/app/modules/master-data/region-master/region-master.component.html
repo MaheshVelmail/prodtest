@@ -1,0 +1,141 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<div class="main-content">
+  <div class="container-fluid">
+                 <!-- Add New Line -->
+                 <div class="item-float">
+                  <button matTooltip="Click to Add Region"mat-mini-fab color="primary" (click)="addRegion()" [hidden]="!canInsert"  [ngClass]="{'disable':!canInsert}">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+    <div class="example-header">
+      <mat-form-field class="mat-form-field-filter">
+        <input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+            <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+      </div>
+      <div class="example-container mat-elevation-z8">
+        <mat-table [dataSource]="dataSource" matSort>
+          <!-- regionName Column -->
+          <ng-container matColumnDef="regionName">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Region </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.regionName}} </mat-cell>
+          </ng-container>
+      
+          <!-- divisionName Column -->
+          <ng-container matColumnDef="divisionName">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Division </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.divisionName}}</mat-cell>
+          </ng-container>
+          <!-- status Column -->
+          <ng-container matColumnDef="active">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.active}} </mat-cell>
+          </ng-container>
+           <!-- action Column -->
+          <ng-container matColumnDef="action">
+            <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate"  (click)="editRegion(row)" [ngClass]="{'disable':!canUpdate}">
+                <mat-icon aria-label="Edit">edit</mat-icon>
+              </button>
+              <button  mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="openDeleteRegionModel(row)"  [ngClass]="{'disable':!canDeleted}">
+                <mat-icon aria-label="Delete">delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+      
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;">
+          </mat-row>
+        </mat-table>
+      
+        <mat-paginator showFirstLastButtons="true" [pageSizeOptions]="[10,15, 25, 100]"></mat-paginator>
+      </div>
+</div>
+  </div>
+  <!--#start addUpdateRegion -->
+<form [formGroup]="regionformGroup" (ngSubmit)="addUpdateDivisionRegion(regionformGroup.value)" class="form">
+  <div bsModal #addUpdateRegiononModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+    <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h3><strong>{{titleText}}</strong></h3>
+          </div>
+            <div class="popup-line"></div>
+            <div class="modal-body">
+              <div class="form-group">
+                <div class="row">
+                  <div class="col-3 astricleftDiv"><label>Region <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+      <input matInput #regionNameInput formControlName="regionName" placeholder="Region Name">
+      <mat-error *ngIf="regionformGroup.controls['regionName'].errors?.required">
+        Region is required.
+       </mat-error>
+      <mat-error *ngIf="regionformGroup.controls['regionName'].hasError('maxlength')">
+        Region cannot exceed 50 characters.
+      </mat-error>
+    </mat-form-field></div></div>
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Division <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+      <mat-select placeholder="Select Division" formControlName="divisionId">
+        <mat-select-filter [displayMember]="'divisionName'" [array]="divisionListDataList" (filteredReturn)="divisionListData = $event"></mat-select-filter>
+        <mat-option *ngFor="let divisionList of divisionListData" [value]="divisionList.divisionId">
+          {{divisionList.divisionName}}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="regionformGroup.controls['divisionId'].errors?.required">
+        Division is required.
+      </mat-error>
+    </mat-form-field>
+  </div></div>
+                <div class="row" *ngIf="statusDiv">
+                  <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label> </div>
+                  <div class="col-9 pull-right"><label class="switch">
+                      <input type="checkbox" class="checkbox-height" formControlName="active">
+                      <span class="slider round"></span>
+                    </label> </div>
+                </div>
+              </div>
+              <div>
+                <button type="reset" (click)="onCloseclick()" class="btn btn-reset action-btn" matTooltip="Click to Close">
+                  <mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close
+                </button>
+                <button class="btn btn-save action-btn" type="submit" [disabled]="!regionformGroup.valid">
+                  <mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</form>
+<!--#end addUpdateRegion -->
+
+<!--#start deleteRegion -->
+<div bsModal #deleteRegionModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+  aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+  <div class="modal-dialog-centered modal-dialog modal-md modelbig">
+    <div class="modal-content">
+          <div class="modal-body">
+            <div mat-dialog-content>
+              <h1 mat-dialog-title>Confirmation?</h1>
+              <h4>Are you sure you want to delete this region?</h4>
+            </div>
+            <div mat-dialog-actions>
+              <button #cancelbtn class="btn btn-info no-btn-margin"
+                (click)="onCloseclick()">
+                <mat-icon>close</mat-icon>No
+              </button>
+              <button class="btn btn-danger" (click)="clickOnDeleteRegion()">
+                <mat-icon>done</mat-icon>Yes
+              </button>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+<!--#end deleteRegion -->

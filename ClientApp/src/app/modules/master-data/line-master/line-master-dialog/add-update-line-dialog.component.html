@@ -1,0 +1,72 @@
+<form [formGroup]="formGroup" (ngSubmit)="InsertUpdateLine(formGroup.value)" class="form">
+  <div class="row"><div class="col-12 popup-Header"> <h3><strong>{{titleText}}</strong></h3>
+    <div class="popup-line"></div>
+  </div></div>
+  <div mat-dialog-content> 
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Line <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+      <input matInput  formControlName="lineName"  placeholder="Line Name">
+      <mat-error *ngIf="formGroup.controls['lineName'].errors?.required">
+        Line is required
+      </mat-error>
+      <mat-error *ngIf="formGroup.controls['lineName'].hasError('maxlength')">
+        Line cannot exceed 50 characters.
+      </mat-error>
+    </mat-form-field></div></div>
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Line Type <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="Select Line Type"  formControlName="lineType">
+      <mat-select-filter [displayMember]="'lineType'" [array]="lineTypeDataList" (filteredReturn)="lineTypeData = $event"></mat-select-filter>
+      <mat-option *ngFor="let linetype of lineTypeData" [value]="linetype.lineType">
+        {{linetype.lineType}}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="formGroup.controls['lineType'].errors?.required">
+      Line Type is required
+    </mat-error>
+  </mat-form-field></div></div>
+  <div class="row">
+    <div class="col-3 astricleftDiv"><label>Plant <span class="required">*</span></label></div>
+    <div class="col-9 pull-right">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="Select Plant" formControlName="plantId">
+      <mat-select-filter [displayMember]="'plantDesc'" [array]="plantTypeDataList" (filteredReturn)="plantTypeData = $event"></mat-select-filter>
+      <mat-option *ngFor="let plant of plantTypeData" [value]="plant.plantId">
+        {{plant.plantDesc}}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="formGroup.controls['plantId'].errors?.required">
+      Plant Type is required
+    </mat-error>
+  </mat-form-field> </div></div>
+  <div class="row">
+    <div class="col-3 astricleftDiv"><label>Filler Type <span class="required">*</span></label></div>
+    <div class="col-9 pull-right">
+  <mat-form-field appearance="fill" [floatLabel]="'never'">
+    <mat-select placeholder="Select Filler Type" formControlName="fillerType">
+      <mat-select-filter [displayMember]="'fillerType'" [array]="fillerTypeDataList" (filteredReturn)="fillerTypeData = $event"></mat-select-filter>
+      <mat-option *ngFor="let fillertype of fillerTypeData" [value]="fillertype.fillerType">
+        {{fillertype.fillerType}}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="formGroup.controls['fillerType'].errors?.required">
+      Filler Type is <strong>required</strong>
+    </mat-error>
+  </mat-form-field></div></div>
+      
+      <div class="row" *ngIf="statusDiv">
+        <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label>   </div> 
+        <div class="col-9 pull-right"><label class="switch">
+            <input type="checkbox" class="checkbox-height" [value]="data.active" formControlName="active">
+            <span class="slider round"></span>
+      </label></div></div>
+  </div>
+  <div mat-dialog-actions>
+    <button type="reset" (click)="onNoClick()" class="btn btn-reset action-btn" matTooltip="Click to Close"><mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close</button>
+    <button  class="btn btn-save action-btn" type="submit" [mat-dialog-close]="1"  [disabled]="!formGroup.valid"><mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}</button>
+  </div>
+</form>

@@ -1,0 +1,239 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+
+<div class="main-content">
+    <div class="container-fluid">
+                   <!-- Add New Line -->
+                   <div class="item-float">
+                    <button matTooltip="Click to Add New Plant" mat-mini-fab color="primary"  (click)="addPlant()" [hidden]="!canInsert"  [ngClass]="{'disable':!canInsert}">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>
+      <div class="example-header">
+        <mat-form-field class="mat-form-field-filter">
+          <input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+              <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+        </div>
+        
+        <div class="example-container mat-elevation-z8">
+          <mat-table [dataSource]="dataSource" matSort>
+            
+            <ng-container matColumnDef="plantName">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Plant </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.plantDesc}} ({{row.plantName}})</mat-cell>
+            </ng-container>        
+            <!-- PlantType Column -->
+            <ng-container matColumnDef="plantType">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Plant Type </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.plantType}} </mat-cell>
+            </ng-container>
+        
+            <!-- DivisionName Column -->
+            <ng-container matColumnDef="divisionName">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Division </mat-header-cell>
+              <mat-cell *matCellDef="let row" [style.color]="row.color"> {{row.divisionName}} </mat-cell>
+            </ng-container>
+             <!-- RegionName Column -->
+             <ng-container matColumnDef="regionName">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Region </mat-header-cell>
+              <mat-cell *matCellDef="let row" [style.color]="row.active"> {{row.regionName}} </mat-cell>
+            </ng-container>
+            <!-- timezone Column -->
+            <ng-container matColumnDef="timezone">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Timezone </mat-header-cell>
+              <mat-cell *matCellDef="let row" [style.color]="row.active"> {{row.timezone}} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="siteDirectorEmail">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Site Director Email </mat-header-cell>
+              <mat-cell *matCellDef="let row" [style.color]="row.active"> {{row.siteDirectorEmailHome}} </mat-cell>
+            </ng-container>
+            <!-- Active Column -->
+            <ng-container matColumnDef="active">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+              <mat-cell *matCellDef="let row" [style.color]="row.active"> {{row.active}}  </mat-cell>
+            </ng-container>
+             <!-- action Column -->
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate"  (click)="editPlant(row)" [ngClass]="{'disable':!canUpdate}">
+                  <mat-icon aria-label="Edit">edit</mat-icon>
+                </button>
+                <button  mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="openDeletePlantModel(row)"  [ngClass]="{'disable':!canDeleted}">
+                  <mat-icon (click)="openDeletePlantModel(row)" aria-label="Delete">delete</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+        
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;">
+            </mat-row>
+          </mat-table>
+        
+          <mat-paginator showFirstLastButtons="true" [pageSizeOptions]="[10, 15, 25, 100]"></mat-paginator>
+        </div>
+  </div>
+    </div>
+
+    <!--#start addUpdatePlant -->
+    <form [formGroup]="formGroup" (ngSubmit)="InsertUpdatePlant(formGroup.value)" class="form">
+    <div bsModal #addUpdatePlantModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+    <div class="modal-dialog-centered modal-dialog modal-md modelWidth">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h3><strong>{{titleText}}</strong></h3>
+          </div>
+            <div class="popup-line"></div>
+            <div class="modal-body  model-body-padding">
+              <div class="form-group">
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Plant Name <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <input matInput #plantName formControlName="plantName" placeholder="Plant Name">
+          <mat-error *ngIf="formGroup.controls['plantName'].errors?.required">
+            Plant is required.
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls['plantName'].hasError('maxlength')">
+            Plant cannot exceed 3 characters.
+          </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Plant Desc <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <input matInput formControlName="plantDesc" placeholder="Plant Desc">
+          <mat-error *ngIf="formGroup.controls['plantDesc'].errors?.required">
+            Plant desc is required.
+          </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Plant Type <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <mat-select placeholder="Select Plant Type" formControlName="plantType">
+            <mat-select-filter [displayMember]="'plantType'" [array]="plantTypeDataList" (filteredReturn)="plantTypeData = $event"></mat-select-filter>
+            <mat-option *ngFor="let planttype of plantTypeData" [value]="planttype.plantType">
+              {{planttype.plantType}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formGroup.controls['plantType'].errors?.required">
+            Plant Type is required.
+          </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Division <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <mat-select placeholder="Select Division" formControlName="divisionId" (selectionChange)="getRegiondata($event.value)">
+            <mat-select-filter [displayMember]="'divisionName'" [array]="plantDevisionDataList" (filteredReturn)="plantDevisionData = $event"></mat-select-filter>
+            <mat-option *ngFor="let plantDivision of plantDevisionData" [value]="plantDivision.divisionId">
+              {{plantDivision.divisionName}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formGroup.controls['divisionId'].errors?.required">
+            Division is required.
+          </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Region <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+      <mat-form-field appearance="fill" [floatLabel]="'never'">
+        <mat-select placeholder="Select Region" formControlName="regionId">
+          <mat-select-filter [displayMember]="'regionName'" [array]="plantRegionDataList" (filteredReturn)="plantRegionData = $event"></mat-select-filter>
+          <mat-option *ngFor="let plantRegion of plantRegionData" [value]="plantRegion.regionId">
+            {{plantRegion.regionName}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="formGroup.controls['regionId'].errors?.required">
+          Region is required.
+        </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Timezone <span class="required">*</span></label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <mat-select placeholder="Select Timezone" formControlName="timezone">
+            <mat-select-filter [displayMember]="'timezone'" [array]="timeZoneListDataList" (filteredReturn)="timeZoneListData = $event"></mat-select-filter>
+            <mat-option *ngFor="let timeZoneList of timeZoneListData" [value]="timeZoneList.timezone">
+              {{timeZoneList.timezone}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formGroup.controls['timezone'].errors?.required">
+            Time Zone is required.
+          </mat-error>
+        </mat-form-field></div></div>
+        <div class="row">
+          <div class="col-3 astricleftDiv"><label>Site Director/Addt. Parties </label></div>
+          <div class="col-9 pull-right">
+        <mat-form-field appearance="fill" [floatLabel]="'never'">
+          <input matInput  #nameSearchInput  formControlName="director" id="director" type="text" class="form-control searchtextbox gsninput" (keyup.enter)="$event.preventDefault();ResetUserSearchControl($event)" (keyup)="$event.preventDefault();ResetUserSearchControl($event)" autocomplete="off" placeholder="Please enter GSN or name or email to search" maxlength="50">
+                    <mat-icon  matSuffix class="pull-right">search</mat-icon>
+          <div class="loader-user" [style.display]="isVisible"><img alt="" src="./../../../assets/img/smallspinner.gif"></div>
+          <div tabindex="0" class="messageDiv searchcontent" [style.display]="isContainerVisible">
+            <div #loadingdiv *ngFor="let user of searchedUsers">
+              <div #searchDivContent class="messageDiv search-item" (click)="selectedUser(user)" *ngIf="user!=null">{{user.displayName}} ({{user.gsn}}) </div>
+            </div>
+            <div class="messageDiv" *ngIf="searchedUsers==null">No record found ! <span class="cross" title="Click to close" (click)="select_cross()">&#10006;</span></div>
+          </div>
+        </mat-form-field><div class="duplicate-user" *ngIf="emailLengthLimitFlag">this user can not be added. Limit exceeds.</div><div class="duplicate-user" *ngIf="showHideDuplicateUser">Email already added.</div>
+      </div></div>
+        <div class="row" *ngIf="searchedUsersEmail.length>0">
+          <div class="col-3 astricleftDiv"><label class="checkboxlebel" for="email">Email</label></div> 
+          <div class="col-8 pull-right">
+            <table aria-hidden="true">
+              <thead></thead>
+              <tbody *ngFor="let email of searchedUsersEmail">
+                <tr>
+                <td class="emailUser">{{email.email}} </td><td> <a class="btnClass" (click)="$event.stopPropagation();$event.preventDefault();deleteEmail(email.email)">X</a></td>
+              </tr>
+            </tbody> </table>
+              </div>
+            </div>
+    
+        <div class="row" *ngIf="statusDiv">
+          <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label>   </div> 
+          <div class="col-9 pull-right">
+        <label class="switch">
+          <input type="checkbox" class="checkbox-height" [value]="active" formControlName="active">
+          <span class="slider round"></span>
+        </label></div></div>
+    
+      <div>
+        <button type="reset" (click)="onNoClick()" class="btn btn-reset action-btn" matTooltip="Click to Close"><mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close</button>
+        <button  class="btn btn-save action-btn" type="submit" [disabled]="!formGroup.valid || disableSubmitOnEmail"><mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}</button>
+      </div>
+              </div>
+            </div>
+      </div>
+    </div>
+      </div>
+    </form>
+        <!--#End addUpdatePlant -->
+    <!--#start deleteRegion -->
+<div bsModal #deletePlantModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+<div class="modal-dialog-centered modal-dialog modal-md modelbig">
+  <div class="modal-content">
+        <div class="modal-body">
+          <div mat-dialog-content>
+            <h1 mat-dialog-title>Confirmation?</h1>
+            <h4>Are you sure you want to delete plant?</h4>
+          </div>
+          <div mat-dialog-actions>
+            <button #cancelbtn class="btn btn-info no-btn-margin"
+            (keydown.enter)="onCloseclick()" (click)="onCloseclick()">
+              <mat-icon>close</mat-icon>No
+            </button>
+            <button class="btn btn-danger" (click)="clickOnDeletePlant()">
+              <mat-icon>done</mat-icon>Yes
+            </button>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+<!--#end deleteRegion -->
+  

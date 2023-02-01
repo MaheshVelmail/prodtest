@@ -1,0 +1,134 @@
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 20px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 15px;
+  left: 4px;
+  bottom: 3px;
+  background-color: #34292a;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #656666;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #656666;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(37px);
+  -ms-transform: translateX(37px);
+  transform: translateX(37px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.checkboxlebel{
+    margin-right: 11px;
+}
+::ng-deep .cdk-overlay-container {
+  /* Do you changes here */
+  position: fixed; 
+  z-index: 999;
+}
+.label-margin-bottom
+{
+  margin-bottom: 4% !important;
+}
+.label-margin-top
+{
+  padding-top: 4% !important;
+}
+.astricleftDiv{
+  float: left !important;
+  
+  }
+  .required{
+    color: red !important;
+  }
+  .mat-form-field-flex{
+    padding-top: 0px !important;
+  }
+  .col-3{
+    padding-right: 0px !important;
+  }
+  .para{
+    font:italic !important;
+    font-size : 13px !important;
+  }
+  .notimezone-para{
+    font:italic !important;
+    font-size : 13px !important;
+    color: red !important;
+  }
+.inputBox{
+  width: 33% !important;
+
+}
+.mat-error{
+  font-size: 12px !important;
+}
+
+.endTime{
+  width: 33% !important;
+  border: none;
+
+}
+.duration{
+  width: 33% !important;
+}
+.nextDay{
+  /* padding: 10px !important; */
+  font-style: italic !important;
+  /* font-weight:bold !important; */
+  /* color:maroon !important; */
+}
+.displayzone
+{
+  margin-left: -8% !important;
+}
+.hour-error{
+  color: red;
+  width: max-content;
+  font-size: 12px !important;
+  margin-top: -17px;
+  display: block;
+  font-weight: 400;
+}
+.padding-duration{
+  padding-left: 0px !important;
+}

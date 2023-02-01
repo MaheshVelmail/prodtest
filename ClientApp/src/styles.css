@@ -1,0 +1,162 @@
+/* You can add global styles to this file, and also import other style files */
+.mat-column-action {
+    max-width: 7% !important;
+   
+  }
+  .mat-form-field-infix {
+    border-top: none !important
+  }
+  .main-panel {
+  background-color: white !important; 
+  }   
+  .mat-form-field-appearance-fill .mat-form-field-flex {
+    color:black !important;
+    /*border: 0.1px solid gray !important ; */
+    background-color: white !important;
+    padding-top: 0px !important;
+    border-radius: 4px !important;
+  }  
+  .mat-form-field.mat-form-field-invalid .mat-form-field-ripple,.mat-form-field-ripple, .mat-form-field.mat-form-field-invalid .mat-form-field-ripple.mat-accent{
+    background-color: #7E3D32 !important;
+  }
+  .popup-line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: grey !important;
+    margin: 5px auto;
+}
+.popup-Header{
+  padding-bottom: 24px !important;
+}
+
+  .mat-form-field:not(.mat-form-field-appearance-legacy) .mat-form-field-prefix .mat-icon-button, .mat-form-field:not(.mat-form-field-appearance-legacy) .mat-form-field-suffix .mat-icon-button {
+  height: 0em !important;
+  }
+  .mat-select-panel
+  {
+  width: 20px !important;
+  }  
+  .mat-form-field.mat-focused .mat-form-field-label, input.ng-valid+span.mat-form-field-label-wrapper{
+    display: none !important;
+}  
+.mat-flat-button.mat-primary, .mat-raised-button.mat-primary, .mat-fab.mat-primary, .mat-mini-fab.mat-primary {
+  background-color: #7E3D32!important;  
+  color: white !important;
+}
+
+.mat-flat-button.mat-primary.mat-button-disabled,
+.mat-flat-button.mat-accent.mat-button-disabled,
+.mat-flat-button.mat-warn.mat-button-disabled,
+.mat-flat-button.mat-button-disabled.mat-button-disabled,
+.mat-raised-button.mat-primary.mat-button-disabled,
+.mat-raised-button.mat-accent.mat-button-disabled,
+.mat-raised-button.mat-warn.mat-button-disabled,
+.mat-raised-button.mat-button-disabled.mat-button-disabled,
+.mat-fab.mat-primary.mat-button-disabled,
+.mat-fab.mat-accent.mat-button-disabled,
+.mat-fab.mat-warn.mat-button-disabled,
+.mat-fab.mat-button-disabled.mat-button-disabled,
+.mat-mini-fab.mat-primary.mat-button-disabled,
+.mat-mini-fab.mat-accent.mat-button-disabled,
+.mat-mini-fab.mat-warn.mat-button-disabled,
+.mat-mini-fab.mat-button-disabled.mat-button-disabled {
+  background-color: grey!important;
+  color: white !important;
+}   
+
+.btn-save
+{
+  color: #fff;
+  background-color: #7E3D32!important; 
+  border-color: #7E3D32!important; 
+} 
+.btn-reset
+{
+  color: #fff;
+  background-color: grey!important; 
+  border-color: grey!important; 
+}   
+
+.mat-header-cell{
+  font-size: 15px;
+}
+.mat-select-placeholder{
+  color:darkgray !important;
+}
+.mat-dialog-container{
+  padding: 0 24px 24px 24px !important;
+
+ }
+ .ng-tns-c230-41 .ng-star-inserted{
+  --clock-hand-color:#7E3D32 !important;
+}
+ .timepicker__header{
+   background-color: grey !important;
+ }
+ 
+ .timepicker-button{
+  color: #7E3D32 !important;
+}
+.excel-color
+{
+  color: #7ac142 !important;
+  font-size: 34px !important;
+  padding-bottom: 9px !important;
+}
+.excel-cursor
+{
+  cursor: pointer !important;
+}
+.mat-dialog-container .mat-icon
+{
+  padding-top: 5% !important;
+}
+.modal-body .material-icons{
+  padding-top: 3px !important;
+}
+.mat-dialog-container .material-icons{
+  padding-top: 3px !important;
+}
+
+@media screen {
+  #printSection {
+      display: none;
+  }
+}
+@media print {
+  body * {
+      visibility:hidden;
+  }
+  #printSection, #printSection * {
+      visibility:visible;
+  }
+  #printSection {
+      position:absolute;
+      left:0;
+      top:0;
+  }
+}
+.cdk-global-overlay-wrapper, .cdk-overlay-container {
+  z-index: 99999 !important;
+}
+
+.cdk-overlay-connected-position-bounding-box{
+  z-index: 9999999 !important;
+}
+.prod-run-date .mat-form-field-subscript-wrapper{
+  width: 200% !important;
+}
+.success-message {
+  background: green;
+  color: white;
+}
+.failed-message {
+  background: darkred;
+  color: white;
+  white-space: pre-wrap;
+}
+.mat-simple-snackbar-action button {
+  color: white !important;
+  font-weight: bold;
+}

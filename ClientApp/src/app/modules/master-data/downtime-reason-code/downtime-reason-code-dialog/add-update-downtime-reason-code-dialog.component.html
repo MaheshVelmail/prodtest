@@ -1,0 +1,44 @@
+<form [formGroup]="formGroup" (ngSubmit)="InsertUpdate(formGroup.value)" class="form">
+  <div class="row"><div class="col-12 popup-Header"> <h3><strong>{{titleText}}</strong></h3>
+    <div class="popup-line"></div>
+  </div></div>
+  <div mat-dialog-content>
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Reason Code <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+      <input matInput formControlName="downtimeReasonCodeDesc" placeholder="Reason Code">
+      <mat-error *ngIf="formGroup.controls['downtimeReasonCodeDesc'].errors?.required">
+        Reason Code is required
+      </mat-error>
+      <mat-error *ngIf="formGroup.controls['downtimeReasonCodeDesc'].hasError('maxlength')">
+        Reason Code cannot exceed 50 characters.
+      </mat-error>
+    </mat-form-field></div></div>
+    <div class="row">
+      <div class="col-3 astricleftDiv"><label>Reason Type <span class="required">*</span></label></div>
+      <div class="col-9 pull-right">
+    <mat-form-field appearance="fill" [floatLabel]="'never'">
+      <mat-select placeholder="Select Reason Type" formControlName="downtimeReasonTypeId">
+        <mat-select-filter [displayMember]="'downtimeReasonTypeDesc'" [array]="downTimeReasonCodeListDataList" (filteredReturn)="downTimeReasonCodeListData = $event"></mat-select-filter>
+        <mat-option *ngFor="let downTimeReasonCodeList of downTimeReasonCodeListData" [value]="downTimeReasonCodeList.downtimeReasonTypeId">
+          {{downTimeReasonCodeList.downtimeReasonTypeDesc}}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="formGroup.controls['downtimeReasonTypeId'].errors?.required">
+        Reason Type is <strong>required</strong>
+      </mat-error>
+    </mat-form-field></div> </div>
+    <div class="row" *ngIf="statusDiv">
+      <div class="col-3 astricleftDiv"><label class="checkboxlebel">Status</label>   </div>
+      <div class="col-9 pull-right"><label class="switch">
+          <input type="checkbox" class="checkbox-height" [value]="data.active" formControlName="active">
+          <span class="slider round"></span>
+    </label> </div></div> 
+  </div>
+  <div mat-dialog-actions>
+      <button type="reset" (click)="onNoClick()" class="btn btn-reset action-btn" matTooltip="Click to Close"><mat-icon style="cursor: pointer;">close</mat-icon>&nbsp;Close</button>
+    <button  class="btn btn-save action-btn" type="submit" [mat-dialog-close]="1"  [disabled]="!formGroup.valid"><mat-icon style="cursor: pointer;">{{btnText}}</mat-icon>{{btnText}}</button>
+
+  </div>
+</form>

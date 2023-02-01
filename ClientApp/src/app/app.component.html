@@ -1,0 +1,22 @@
+<router-outlet></router-outlet>
+<div bsModal #childModal="bs-modal" class="modal fade" tabindex="-1"
+     role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="dialog-child-name" class="modal-title pull-left">{{sessionAlertTitle}}</h4>
+      </div>
+      <div class="modal-body">
+         {{idleState}}
+        <div class="row mrgbtm">
+          <div class="col-md-6 {{logoutClass}}">
+              <button type="button" class="{{logoutClass}}"  (click)="logout()" class="btn btn-danger">Logout</button>
+          </div>
+          <div class="col-md-6 {{stayClass}}">
+              <button type="button" class="{{stayClass}}" (click)="stay()" class="btn btn-success">Stay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

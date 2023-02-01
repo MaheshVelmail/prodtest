@@ -1,0 +1,177 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+<div class="main-content">
+	
+	<div class="container-fluid">
+		<!-- Add New Line -->
+		<div class="item-float">
+			<button matTooltip="Click to Add New User" mat-mini-fab color="primary" (click)="addUser()" [hidden]="!canInsert"  [ngClass]="{'disable':!canInsert}">
+				<mat-icon>add</mat-icon>
+			</button>
+			
+		</div>
+		<div class="example-header">		
+				<mat-form-field class="mat-form-field-filter">
+					<input matInput [(ngModel)]="filterValueModel" (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+					<mat-icon matSuffix>search</mat-icon>
+				</mat-form-field>
+			</div>
+			<span class="defaultplantnotice star">*User's default Plant</span>
+		
+		<div class="example-container mat-elevation-z8">
+			<mat-table [dataSource]="dataSource" matSort>
+				
+				<!-- DisplayName Column -->
+				<ng-container matColumnDef="displayname">
+					<mat-header-cell *matHeaderCellDef mat-sort-header> Name </mat-header-cell>
+					<mat-cell *matCellDef="let row"> {{row.displayname}}</mat-cell>
+					</ng-container>
+				<!-- GSN Column -->
+				<ng-container matColumnDef="gsn">
+					<mat-header-cell *matHeaderCellDef mat-sort-header> GSN </mat-header-cell>
+					<mat-cell *matCellDef="let row"> {{row.gsn}} </mat-cell>
+				</ng-container>
+			
+				<!-- Email Column -->
+				<ng-container matColumnDef="email">
+					<mat-header-cell *matHeaderCellDef mat-sort-header> Email </mat-header-cell>
+					<mat-cell *matCellDef="let row" class="mat-column-action"> {{row.email}} </mat-cell>
+				</ng-container>
+				<!-- Group Name Column -->
+				<ng-container matColumnDef="groupName">
+					<mat-header-cell *matHeaderCellDef mat-sort-header> Group </mat-header-cell>
+					<mat-cell *matCellDef="let row" [style.color]="row.active"> {{row.groupName}} </mat-cell>
+				</ng-container>
+				
+				<!-- Default Plant Column -->
+				<ng-container matColumnDef="plantName">
+					<mat-header-cell *matHeaderCellDef mat-sort-header> Plant(s) </mat-header-cell>
+					<mat-cell *matCellDef="let row" [style.color]="row.active"><strong>{{row.defaultPlant}}<span class="star" *ngIf="row.defaultPlant.length!=0">*, &nbsp;</span> </strong>{{row.plants}}</mat-cell>
+				</ng-container>
+				
+				<!-- action Column -->
+				<ng-container matColumnDef="action">
+					<mat-header-cell *matHeaderCellDef class="W6P">Action</mat-header-cell>
+					<mat-cell *matCellDef="let row"  class="W6P">
+						<button mat-icon-button matTooltip="Click to edit" [hidden]="!canUpdate"  (click)="editUser(row)" [ngClass]="{'disable':!canUpdate}">
+							<mat-icon aria-label="Edit">edit</mat-icon>
+						</button>
+						<button mat-icon-button matTooltip="Click to delete" [hidden]="!canDeleted || row.active=='Closed'" (click)="confirmDeleteDialog(row)"  [ngClass]="{'disable':!canDeleted}">
+							<mat-icon (click)="confirmDeleteDialog(row)" aria-label="Delete">delete</mat-icon>
+						</button>
+					</mat-cell>
+				</ng-container>
+				<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+				<mat-row  id="row-{{index}}" *matRowDef="let row; columns: displayedColumns;let index = index;"> </mat-row>
+			</mat-table>
+			<mat-paginator showFirstLastButtons="true" [pageSizeOptions]="[10,15, 25,100]"></mat-paginator>
+		</div>
+	</div>
+</div>
+<!--User dialog confirmation box-->
+<div bsModal #confirmModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog-centered modal-dialog modal-md modelbig">
+		<div class="modal-content">
+			  <div class="modal-body">
+				<div mat-dialog-content>
+				  <h1 mat-dialog-title>Confirmation?</h1>
+				  <h4>Are you sure, you want to delete this user?</h4>
+				</div>
+				<div mat-dialog-actions>
+					<button #cancelbtn type="button" autofocus (click)="cancelConfirm()" class="btn btn-info no-btn-margin"><mat-icon class="icon">close</mat-icon>No</button>
+					<button type="button" (click)="deleteUser()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>Yes</button>
+				</div>
+			  </div>
+		  </div>
+		</div>
+</div>
+<!--Add/Edit user dialog box-->
+<form [formGroup]="validationForm" (ngSubmit)="savedata(validationForm.value)" class="form">
+	<div bsModal #addeditModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+		<div class="modal-dialog-centered modal-dialog modal-md modelbig">
+			<div class="modal-content">
+				<div class="user-add-row modal-header" >
+					<h3  id="dialog-child-name"><strong> {{addEditDialogTitle}} </strong> </h3>
+				</div>
+				<div class="popup-line" style="width: 96% !important;"></div>
+				<div class="modal-body">
+					<div class="form-group">
+						<div class="row"> 
+							<div  class="col-3 margin-top-name">
+								<label class="label-font-weight" for="gsn">Name <span class="required">*</span></label>
+							</div>
+						<div class="col-6">
+
+						<div class="input-group col-18">
+						<label [hidden]="showAddUserControls"  class="name-textbox">{{getControlLabel('displayName')}}</label>
+						<input [hidden]="!showAddUserControls" #nameSearchInput  formControlName="gsn" id="name" type="text" class="form-control searchtextbox gsninput" (keyup.enter)="ResetUserSearchControl($event)" (keyup)="ResetUserSearchControl($event)" autocomplete="off" placeholder="Please enter GSN or name or email to search" maxlength="50">
+					      <mat-icon [hidden]="!showAddUserControls" matSuffix class="pull-right">search</mat-icon>
+					   </div>
+						<div *ngIf="(validationForm.controls['gsn'].touched || submitted) && validationForm.controls['gsn'].invalid" class="alert alert-danger" style="width: fit-content;">
+							<div *ngIf="validationForm.controls['gsn'].errors.required">Name is required.</div>
+							<div *ngIf="validationForm.controls['gsn'].errors.minlength" style="width: 243px !important;">Please enter at least 3 character to search.</div>
+						</div>
+						<div class="loader-user" [style.display]="isVisible"><img alt="" src="./../../../assets/img/smallspinner.gif"></div>
+						<div tabindex="0" class="messageDiv searchcontent" [style.display]="isContainerVisible">
+							<div #loadingdiv *ngFor="let user of searchedUsers">
+								<div #searchDivContent class="messageDiv search-item" (click)="selectedUser(user)" *ngIf="user!=null">{{user.displayName}} ({{user.gsn}}) </div>
+							</div>
+						</div>
+						<div class="messageDiv" *ngIf="searchedUsers==null">No record found ! <span class="cross" title="Click to close" (click)="select_cross()">&#10006;</span></div>
+					</div>
+					<div class="col-1"><button type="button" mat-button class="clearSearch" mat-icon-button matSuffix (click)="clearSearchField()" *ngIf="clearSearch"><mat-icon>close</mat-icon></button></div>
+				</div>
+				</div>
+					<div class="form-group" [style.display]="isEmailDivVisible">
+						<div class="row"> 
+							<div  class="col-3">
+								<label class="label-font-weight" for="email">Email</label>
+							</div>
+						<div class="col-6">
+							
+							<label  class="email-textbox">{{getControlLabel('email')}}</label>
+					</div>
+				</div>
+			</div>
+					<div class="row select-group-margin-top"> 
+						<div  class="col-3 margin-top-groupplant">
+							<label class="dd-form-label">{{selectGroupLabel}} <span class="required">*</span></label>
+						</div>
+					<div class="col-6 form-group multiselectControl multiselect-dropdown-width">
+						<ng-multiselect-dropdown (ngModelChange)="groupPlantDrpChange($event)" [placeholder]="'Select group'" formControlName="userGroups" [settings]="dropdownSettings" [data]="userGroups"> </ng-multiselect-dropdown>
+						<div *ngIf="(validationForm.controls['userGroups'].touched  || submitted) && validationForm.controls['userGroups'].invalid" class="alert alert-danger">
+							<div *ngIf="validationForm.controls['userGroups'].errors.required">Group is required.</div>
+						</div>
+					</div>
+					</div>
+					<div class="row" [hidden]="hiddenPlantdd"> 
+						<div  class="col-3 margin-top-groupplant">
+							<label class="dd-form-label">{{selectPlantLabel}} <span class="required">*</span></label>
+						</div>
+					<div class="col-6 form-group multiselectControl multiselect-dropdown-width">
+						<ng-multiselect-dropdown (ngModelChange)="groupPlantDrpChange($event)" [(ngModel)]="selectedPlant" #multiSelect formControlName="userPlants"  [settings]="dropdownSettingsPlants"
+						(onDeSelect)="onDeSelect($event)" [placeholder]="'Select plant(s)'" [data]="userPlants" style="max-width: 300px;"> </ng-multiselect-dropdown>
+						<div *ngIf="(validationForm.controls['userPlants'].touched || submitted) && validationForm.controls['userPlants'].invalid" class="alert alert-danger">
+							<div *ngIf="validationForm.controls['userPlants'].errors.required">Plant(s) is required.</div>
+						</div>
+					</div>
+				</div>
+				<div class="row"> 
+					<div  class="col-3 margin-top-groupplant">
+						<label class="dd-form-label"> {{selectDefaultPlantLabel}}</label>
+					</div>
+					<div class="col-6 form-group multiselectControl multiselect-dropdown-width">
+						<ng-multiselect-dropdown (ngModelChange)="groupPlantDrpChange($event)"  [placeholder]="'Select default plant'" formControlName="defaultPlant" [settings]="dropdownSettingsDefaultPlant" [data]="selectedPlant" style="max-width: 300px;"> </ng-multiselect-dropdown>
+						
+					</div>
+					</div>
+					<div class="row mrgbtm upper-margin btn-position-modal">
+						<div class="col-12">
+							<button type="button" (click)="cancelModal()" class="btn btn-reset action-btn"><i class="fa fa-times fa-icon-margin" aria-hidden="true"></i>Close</button>
+							<button type="button" [disabled]="!showHideSaveBtn" type="submit" class="btn btn-save action-btn"><mat-icon style="cursor: pointer;" class="fa-icon-margin">{{btnText}}</mat-icon>{{btnText}}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

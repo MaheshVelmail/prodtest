@@ -1,0 +1,671 @@
+<progress-spinner-configurable></progress-spinner-configurable>
+
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="example-button-container">
+            <div class="row justify-center" *ngIf="!showPlantLineOnNextClick">
+                <div class="col-2">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select  placeholder=" Select Plant" [disabled]="isGobtnDisable" [(ngModel)]="selectedplant" (selectionChange)="getLinesByPlant($event.value)" [ngModelOptions]="{standalone: true}"
+                            name="plant">
+                            <mat-select-filter [displayMember]="'plantDesc'" [array]="plantTypeDataList" (filteredReturn)="plantTypeData = $event"></mat-select-filter>
+                            <mat-option *ngFor="let plant of plantTypeData" [value]="plant.plantId">
+                                {{plant.plantDesc}} ({{plant.plantName}})
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-3">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select placeholder="Select Line" [disabled]="isGobtnDisable" [(ngModel)]="selectedline" (selectionChange)="getShiftByLine($event.value)" name="line" [ngModelOptions]="{standalone: true}">
+                            <mat-select-filter [displayMember]="'lineName'" [array]="linesDataByPlantList" (filteredReturn)="linesDataByPlant = $event"></mat-select-filter>
+                            <mat-option *ngFor="let line of linesDataByPlant" [value]="line.lineId">
+                                {{line.lineName}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-2">
+                    <mat-form-field class="mat-form-field-calendar prod-run-date">
+                        <input  [disabled]="isGobtnDisable" matInput  #input="ngModel"  [min]="minDate" [max]="maxDate" [matDatepicker]="picker" [(ngModel)]="selectedDate" [ngModelOptions]="{standalone: true}" required>
+                       <mat-datepicker-toggle  matSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker class="cal-class"></mat-datepicker>
+                        <mat-error  *ngIf="input.hasError('matDatepickerMin') && loggedInUserGroup=='PU'">You can go back upto 7days only!</mat-error>
+                        <mat-error  *ngIf="input.hasError('matDatepickerMin') && loggedInUserGroup=='PM'">You can go back upto 30days only!</mat-error>
+                        <mat-error  *ngIf="input.hasError('matDatepickerMax')">Run date can not be later than today!</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-2">
+                    <mat-form-field appearance="fill" [floatLabel]="'never'">
+                        <mat-select  placeholder="Select Shift" [disabled]="isGobtnDisable" [(ngModel)]="selectedshift" name="shift" [ngModelOptions]="{standalone: true}">
+                            <mat-option *ngFor="let shift of shiftbyLineData" [value]="shift.shiftId">
+                                {{shift.shiftName}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-1">
+                    <button (click)="Go();" matTooltip="Click to Go"  [disabled]="selectedplant==undefined || selectedline==undefined || selectedDate==undefined || selectedshift==undefined || isGobtnDisable || input.hasError('matDatepickerMin') || input.hasError('matDatepickerMax')"
+                        class="margin-left btn-float" mat-mini-fab color="primary">
+                        Go
+                    </button>
+                </div>
+                <div class="para-line diplay-margin-right"></div> 
+            </div>
+
+            <div class="row  justify-center" *ngIf="showPlantLineOnNextClick">
+                <div class="col-3.5 prodrun-label-font">
+                       <label>Plant:</label><span> {{displayplantName}}   </span><label>Line:</label><span> {{displaylineName}}</span>
+                </div>
+                <div class="col-2 prodrun-label-font">
+                        <label>Date:</label><span> {{displayDate}}</span>
+                </div>
+                <div class="col-2.5 prodrun-label-font">
+                    <label>Total Entered Time:</label><span [ngClass]="{
+                        'cross-max-limit' : prodRunSumOfShiftDuration > maxShiftduration,
+                        'normal-color ' : prodRunSumOfShiftDuration < maxShiftduration
+                     }"> {{prodRunSumOfShiftDuration}} mins/day</span>
+                </div>
+                <div class="col-2 prodrun-label-font">
+                     <label>Shift:</label><span> {{displayShiftName}}</span>
+                </div>
+                <div class="col-2 prodrun-label-font">
+                    <a [routerLink]="" (click)="$event.stopPropagation();printModalShow()"> [View Printer Friendly] </a>
+                 </div>
+                 <div class="para-line"></div>
+            </div>
+            
+        </div>
+        
+        <mat-horizontal-stepper #stepper [hidden]="Isstepperhidden">
+            <mat-step [stepControl]="firstFormGroup">
+                <form [formGroup]="firstFormGroup" (keydown.enter)="$event.preventDefault()">
+                    
+        <div>
+            <div class="row row-margin-bottom">
+                <div class="col-2">
+                    <button [hidden]="!canInsert" [disabled]="(remainingRunDuration>0? false:true) || !hideDummySKUNextBtn" class="btn-margin-right" matTooltip="click here to add production entry below" mat-mini-fab color="primary" (click)="$event.stopPropagation();$event.preventDefault();firstFormaddElement()">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                    <button [hidden]="!canUpdate" [disabled]="firstFormselection.selected.length==0" matTooltip="click here to delete entry(s) selected below" mat-mini-fab color="warn" (click)="$event.stopPropagation();$event.preventDefault();deleteSelectedRow('firstForm')">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                   
+                </div>
+                <div class="col-2 prodrun-label-font"><label>Total Efficiency:</label><span> {{totalPerOfEff}}%</span></div>
+                <div class="col-4 prodrun-label-font">
+                    <label>Shift Duration:</label>&nbsp;<input (focusout)="shiftDurationHrInputFocusOut()"  id="duration" [disabled]="!canUpdate"  type="number" min="0" max="24"  oninput="this.value>24?(this.value=24):(validity.valid||(this.value=0))"  #shiftDurationInputControl class="shiftduration-width"  (keydown.enter)="$event.preventDefault()"  (keyup.enter)="shiftDurationDetails()" (change)="shiftDurationDetails()"[(ngModel)]="shiftDurationHrInput" [ngModelOptions]="{standalone: true}"
+                    >&nbsp;hrs&nbsp;
+                    <input  [disabled]="!canUpdate" (focusout)="shiftDurationMinInputFocusOut()"  id="duration" type="number" min="0" max="59" class="form-control"  oninput="this.value>59?(this.value=59):(validity.valid||(this.value=0))"  #shiftDurationInputControl class="shiftduration-width"  (keydown.enter)="$event.preventDefault()"  (keyup.enter)="shiftDurationDetails()" (change)="shiftDurationDetails()"[(ngModel)]="shiftDurationMinInput" [ngModelOptions]="{standalone: true}"
+                    >&nbsp;mins
+                </div>
+                <div class="col-4  prodrun-label-font">
+                    <label>Downtime:</label><span class="downtime-color"> {{downtimeHr}} hrs {{downtimeMin}} mins ({{downtimeDetails}} mins)</span> 
+                    </div> 
+        </div>
+        <div class="row" *ngIf="isEmptyrow">
+            Please fill all required fields before adding new record.
+        </div>
+        <div class="example-container mat-elevation-z8">
+            <mat-table id="prodruntable" class="mat-elevation-z8" [dataSource]="firstFormdataSource" matSort #firstFormdataSourcesort="matSort">
+                <ng-container matColumnDef="sequenceNumber">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>
+                        Item
+                    </mat-header-cell>
+                    <mat-cell  *matCellDef="let r; let i = index;"> {{r.sequenceNumber}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="productCode">
+                    <mat-header-cell *matHeaderCellDef >
+                        Product Code
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <div class="form-group shiftdurationInput-width">
+                        <input id="product" [disabled]="!canUpdate" #prodCodeInputControl type="number" onKeyPress="if(this.value.length==10) return false;" 
+                        (focus)="checkShiftDuration()" (keyup.enter)="GetProductBySKU(r,$event.target.value)" (keydown.enter)="$event.preventDefault()"
+                                   (change)="GetProductBySKU(r,$event.target.value)" autocomplete="off" placeholder="Enter product code" value="{{r.productCode}}">
+                                </div>
+                                </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="productDesc">
+                    <mat-header-cell *matHeaderCellDef >
+                        Description
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                            {{r.productDesc}}
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="runDuration">
+                    <mat-header-cell *matHeaderCellDef >
+                        Duration
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <div class="form-group duration-flex">
+                                <input  [disabled]="!canUpdate" id="duration"  type="number" min="0" max="24" maxlength="2" oninput="this.value>24?(this.value=24):(validity.valid||(this.value=0))"  value="{{calculateDurationinInHr(r.runDuration)}}"
+                                (keydown.enter)="$event.preventDefault()" (keyup.enter)="UpdateProdRunDuration(r,$event.target.value,'hr')"(change)="UpdateProdRunDuration(r,$event.target.value,'hr')" required>
+                                &nbsp;hrs&nbsp;<input  id="duration"   [disabled]="!canUpdate"  type="number" min="0" max="59" maxlength="2"  oninput="this.value>59?(this.value=59):(validity.valid||(this.value=0))"  value="{{calculateDurationinInMin(r.runDuration)}}"
+                                (keydown.enter)="$event.preventDefault()" (keyup.enter)="UpdateProdRunDuration(r,$event.target.value,'min')"(change)="UpdateProdRunDuration(r,$event.target.value,'min')" required>&nbsp;mins
+                                
+                        </div>
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="planQuantity">
+                    <mat-header-cell *matHeaderCellDef >
+                        Plan
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;" [hidden]="r.productCode===999999999">
+                            {{r.planQuantity}}
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="capacityQuantity">
+                    <mat-header-cell *matHeaderCellDef >
+                        Capacity
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;" [hidden]="r.productCode===999999999">
+                            {{r.capacityQuantity}}
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="actualQuantity">
+                    <mat-header-cell *matHeaderCellDef >
+                        Produced
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;" [hidden]="r.productCode===999999999">
+                        <div class="form-group producedInput-width">
+                            <input id="product" [disabled]="!canUpdate"  type="number" min="0" oninput="this.value<0?(this.value=0):(validity.valid||(this.value=0))" onKeyPress="if(this.value.length==10) return false;" (keydown.enter)="$event.preventDefault()" (keyup.enter)="CalculatePerOfEfficiency(r,$event)" (change)="CalculatePerOfEfficiency(r,$event)" value="{{r.actualQuantity}}"
+                              required>
+                        </div>
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="perEff">
+                    <mat-header-cell *matHeaderCellDef >
+                        %Efficiency
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;" [hidden]="r.productCode===999999999">
+                        {{CalForPerEffCol(r)}}
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="prodrunaction">
+                    <mat-header-cell *matHeaderCellDef><mat-checkbox class="mat-checkbox-layout" (change)="$event ? firstformmasterToggle() : null"
+                        [checked]="firstFormselection.hasValue() && isfirstFormAllSelected()"
+                        [indeterminate]="firstFormselection.hasValue() && !isfirstFormAllSelected()">
+                    </mat-checkbox> &nbsp;Delete
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let row" [ngClass]="{'checkbox-position': row.productCode===999999999}">  
+                        <mat-checkbox [disabled]="!canUpdate" (click)="$event.stopPropagation()"
+                      (change)="$event ? firstFormselection.toggle(row) : null"
+                      [checked]="firstFormselection.isSelected(row)">
+        </mat-checkbox>  
+</mat-cell>
+                </ng-container>
+                <mat-header-row *matHeaderRowDef="columnListfirstFormGroup"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: columnListfirstFormGroup; let i = index;"
+                    >
+                </mat-row>
+            </mat-table>
+        </div>
+    </div>
+    <div class="label-float prodrun-label-font">
+        <div><label class="mins-remaining-margin">Minutes Remaining:</label><span> {{remainingRunDuration}}</span></div>
+        <div><label>Produced:</label><span> {{sumProduced}}</span></div> 
+    </div>
+        <div class="btn-can-next">
+            <button type="button" (click)="Cancel()" class="btn btn-reset action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">close</mat-icon>Cancel</button>
+			<button type="button" [disabled]="(remainingRunDuration<0?true:false)" (click)="ShowShiftDetailsAlert()"  class="btn btn-save action-btn"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">navigate_next</mat-icon>Next</button>
+            <!-- <button type="button" [hidden]="hideDummySKUNextBtn" [disabled]="isFirstFormEmpty || (remainingRunDuration==0?true:false)" (click)="moveToDowntimeScreen()"  class="btn btn-save action-btn"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">navigate_next</mat-icon>Next</button> -->
+        </div>
+        <!-- <div><p class="dummy-product-txt">*Code <b>{{dummySKUProductCode}}</b> – “Add time” will be use in cases that there is no production, i.e., “Sunday” where we’ll capture time for Sanitation or Maintenance or any other planned activity.</p></div> -->
+</form>
+</mat-step>
+<mat-step [stepControl]="secondFormGroup">
+    <form [formGroup]="secondFormGroup" (keydown.enter)="$event.preventDefault()">
+        <div>
+            <div class="row row-margin-bottom prodrun-label-font">
+                <div class="col-4">
+                    <button [hidden]="!canInsert" [disabled]="((secondFormDowntimeDetails -editedSecondFormsumDuration)!=0?false:true)"  class="btn-margin-right" matTooltip="click here to add downtime reason detail entry" mat-mini-fab color="primary" (click)="$event.stopPropagation();$event.preventDefault();secondFormaddElement();">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                    <button [hidden]="!canUpdate" [disabled]="secondFormselection.selected.length==0" matTooltip="click here to delete reason details selected below" mat-mini-fab color="warn" (click)="$event.stopPropagation();$event.preventDefault();deleteSelectedRow('secondForm')">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                      
+                    </div> 
+                <div class="col-6">
+                    <label>Downtime Duration:&nbsp;</label><span>{{downtimeHr}} hrs {{downtimeMin}} mins ({{downtimeDetails}} mins)</span> 
+                </div>
+                <div class="col-2 div-button-align">
+                    <label>Minutes Remaining:</label><span> {{downtimeMinutesRemaining(secondFormDowntimeDetails,editedSecondFormsumDuration)}}</span></div>
+        </div>
+
+        <div class="example-container mat-elevation-z8">
+            <mat-table id="downtimetable" class="mat-elevation-z8" [dataSource]="secondFormdataSource">
+                <ng-container matColumnDef="sequenceNumber">
+                    <mat-header-cell *matHeaderCellDef >
+                        Item
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;"> {{r.sequenceNumber}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="type">
+                    <mat-header-cell *matHeaderCellDef >
+                        Type
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <mat-form-field>
+                            <mat-select panelClass="type-mat-select" [disabled]="!canUpdate" [(value)]="r.downtimeReasonTypeId" (selectionChange)="getReasonCode(r,$event.value)">
+                                <mat-select-filter [displayMember]="'downtimeReasonTypeDesc'"  [array]="filteredDowntimeReasonTypList" (filteredReturn)="r.typesData = $event"></mat-select-filter>
+                                <mat-option *ngFor="let types of r.typesData" [value]="types.downTimeReasonTypeId">
+                                  {{types.downtimeReasonTypeDesc}}
+                                </mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="downtimeReasonDesc">
+                    <mat-header-cell *matHeaderCellDef >
+                        Reason Code                                    
+                    </mat-header-cell> 
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <mat-form-field>
+                            <mat-select panelClass="type-mat-select" [disabled]="!canUpdate" [(value)]="r.downtimeReasonCodeId" (selectionChange)="getReasonDetail(r,$event.value)">
+                                <mat-select-filter [displayMember]="'downtimeReasonCodeDesc'" (click)="filterArrayList(r)" [array]="filteredDowntimeReasonCodeList" (filteredReturn)="r.downtimeReasonCode = $event"></mat-select-filter>
+                                <mat-option *ngFor="let reason of r.downtimeReasonCode" [value]="reason.downtimeReasonCodeId">
+                                  {{reason.downtimeReasonCodeDesc}}
+                                </mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                          
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="downtimeReasonDetailDesc">
+                    <mat-header-cell *matHeaderCellDef >
+                        Reason Detail
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <mat-form-field>
+                            <mat-select panelClass="type-mat-select" [disabled]="!canUpdate" [(value)]="r.downtimeReasonDetailId" (selectionChange)="reasonDetailChange(r,$event.value)">
+                                <mat-select-filter [displayMember]="'downtimeReasonDetailDesc'" (click)="filterArrayList(r)" [array]="filteredDowntimeReasonDetailList" (filteredReturn)="r.downtimeReasonDetail = $event"></mat-select-filter>
+                                <mat-option *ngFor="let reason of r.downtimeReasonDetail" [value]="reason.downtimeReasonDetailId">
+                                  {{reason.downtimeReasonDetailDesc}}
+                                </mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="downtimeDuration">
+                    <mat-header-cell *matHeaderCellDef >
+                        Duration
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <div class="form-group downtime-duration-width duration-flex">
+                                <input id="duration" [disabled]="!canUpdate" type="number" min="0" max="24"   oninput="this.value>24?(this.value=24):(validity.valid||(this.value=0))"  value="{{calculateDurationinInHr(r.downtimeDuration)}}"
+                                (keydown.enter)="$event.preventDefault()" (keyup.enter)="productionDownTimeDuration(r,$event.target.value,'hr')"(change)="productionDownTimeDuration(r,$event.target.value,'hr')" required>
+                                &nbsp;hrs&nbsp;
+                                <input id="duration" [disabled]="!canUpdate" type="number" min="0" max="59"   oninput="this.value>59?(this.value=59):(validity.valid||(this.value=0))"  value="{{calculateDurationinInMin(r.downtimeDuration)}}"
+                                (keydown.enter)="$event.preventDefault()" (keyup.enter)="productionDownTimeDuration(r,$event.target.value,'min')"(change)="productionDownTimeDuration(r,$event.target.value,'min')" required>&nbsp;mins
+                            </div>
+                    </mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="laborreleased">
+                    <mat-header-cell *matHeaderCellDef >
+                        Labor Released
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let r; let i = index;">
+                        <mat-form-field>
+                            <mat-select [disabled]="!canUpdate" [(value)]="r.labourReleased" (selectionChange)="laborReleasedChange(r,$event.value)">
+                                <mat-option *ngFor="let laborReleased of laborReleasedData" [value]="laborReleased.value">
+                                    {{laborReleased.value}}
+                                  </mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                    </mat-cell>
+                </ng-container>
+               
+                <ng-container matColumnDef="downtimeaction">
+                    <mat-header-cell *matHeaderCellDef><mat-checkbox class="mat-checkbox-layout" (change)="$event ? secondFormMasterToggle() : null"
+                        [checked]="secondFormselection.hasValue() && issecondFormMAllSelected()"
+                        [indeterminate]="secondFormselection.hasValue() && !issecondFormMAllSelected()">
+                    </mat-checkbox>&nbsp;Delete
+                        
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let row">  
+                        <mat-checkbox [disabled]="!canUpdate" (click)="$event.stopPropagation()"
+                      (change)="$event ? secondFormselection.toggle(row) : null"
+                      [checked]="secondFormselection.isSelected(row)">
+        </mat-checkbox>  
+</mat-cell>
+                </ng-container>
+                <mat-header-row *matHeaderRowDef="columnListsecondFormGroup"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: columnListsecondFormGroup; let i = index;"
+                    >
+                </mat-row>
+            </mat-table>
+        </div>
+    </div>
+</form>
+        <div class="btn-can-next">
+            <button [hidden]="!showProdRunDeleteButton" type="button" (click)="confirmProdRunDeleteDialog()"  class="btn btn-danger action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">delete</mat-icon>Delete SHIFT DATA</button> 
+            <button  type="button" (click)="backClick()"  class="btn btn-save action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">keyboard_return</mat-icon>Back</button>
+        <button type="button" (click)="Cancel()" class="btn btn-reset action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">close</mat-icon>Cancel</button>	
+        <button [hidden]="!canUpdate || !canInsert" [disabled]="downtimeMinutesRemaining(secondFormDowntimeDetails,editedSecondFormsumDuration)==0?false:true" type="button" (click)="saveFirstSecondFormData()"  class="btn btn-save action-btn"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">save</mat-icon>Save</button>            
+
+        </div>
+</mat-step>
+</mat-horizontal-stepper>
+
+<div bsModal #printModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
+        aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+        <div class="modal-dialog-centered modal-dialog modal-md modal-content-up">
+            <div class="modal-content modal-content-up">
+                <div class="modal-body printPopup">
+                    <div #contentDivPrint>
+                        <table aria-hidden="true" border="0" class="PrintTable PrintTableWidth">
+                            <thead></thead>
+                            <tbody>
+                                <tr>
+                            <td colspan="2">
+                            </td>
+                            </tr>
+                            <tr>
+                            <td colspan="2">
+                                <table aria-hidden="true" class="PrintTableSeparator">
+                                    <thead></thead>
+                                <tbody><tr>
+                                <td style="font-weight: bold;">&nbsp;<strong>User :</strong> <span id="lblUser">&nbsp;&nbsp;&nbsp;&nbsp;{{groupName}}</span></td>
+                                <td></td>
+                                <td style="font-weight: bold;">&nbsp;</td>
+                                </tr>
+                                </tbody></table>
+                            </td>
+                            </tr><br>
+                            <tr>
+                            <td colspan="2" style="height: 50px">
+                                <table aria-hidden="true" border="0" class="PrintTableSeparator">
+                                    <thead></thead>
+                                <tbody><tr>
+                                <td>
+                                    <table aria-hidden="true" border="0" class="PrintTable">
+                                        <thead></thead>
+                                    <tbody><tr><td><strong>Plant:</strong></td><td><span id="lblPlant">{{displayplantName}}</span></td></tr>
+                                    <tr><td><strong>Date:</strong></td><td><span id="lblDate">{{displayDateOnPrint}}</span></td></tr>
+                                    <tr><td><strong>Line:</strong></td><td><span id="lblLine">{{displaylineName}}</span></td></tr>
+                                    <tr><td><strong>Total Entered Time:</strong></td><td><span id="lblLine">{{prodRunSumOfShiftDuration}} mins/day </span></td></tr>
+                                    <tr><td><strong>Shift:</strong></td><td><span id="lblShift">{{displayShiftName}}</span></td></tr>
+                                    </tbody></table>
+                                </td>
+                                
+                                <td>
+                                    <table aria-hidden="true" border="0" class="PrintTable">
+                                        <thead></thead>
+                                    <tbody><tr><td><strong>Shift Duration:</strong></td><td><span id="lblSDHrs">{{shiftDurationInputOnPrint}}</span></td></tr>
+                                    <tr><td><strong>Downtime:</strong></td><td><span id="lblDTHrs">{{downtimeHr}} hrs {{downtimeMin}} mins</span></td></tr>
+                                    <tr><td><strong>Total Efficiency:</strong></td><td><span id="lblTotalEfficiency">{{totalPerOfEff}}%</span></td></tr>
+                                    <tr><td><strong>Total Produced:</strong></td><td><span id="lblTotalProduced">{{sumProduced | number:'1.0':'en-US'}}</span> </td></tr>
+                                    </tbody></table>
+                                </td>
+                                </tr>
+                                </tbody></table>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td colspan="2" style="height: 50px">
+                                <table aria-hidden="true" class="PrintTableSeparator">
+                                    <thead></thead>
+                                <tbody><tr>
+                                <td style="font-weight: bold;text-align: center;">Production Run Data</td>
+                                </tr>
+                                </tbody></table>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td colspan="2">
+                                <div>
+                                <table aria-hidden="true" *ngIf="editedFirstFormData" class="PrintDataTable" border="1" style="border-collapse:collapse;">
+                                    <thead></thead>
+                                    <tbody>
+                                        <tr>
+                                        <th class="HeaderCell" scope="col">Product Code</th>
+                                        <th class="HeaderCell" scope="col">Product Description</th>
+                                        <th class="HeaderCell" scope="col">Duration</th>
+                                        <th class="HeaderCell" scope="col">Planned</th>
+                                        <th class="HeaderCell" scope="col">Capacity</th>
+                                        <th class="HeaderCell" scope="col">Produced</th>
+                                        <th class="HeaderCell" scope="col">Efficiency %</th>
+                                    </tr>
+                                    <tr *ngFor="let row of editedFirstFormData">
+                                        <td>
+                                                <span id="lblProductCode">{{row.productCode}}</span>
+                                            </td><td>
+                                                <span id="lblProductDescription">{{row.productDesc}}</span>
+                                            </td><td>
+                                                <span id="lblDurationHrs">{{calculateDurationinRowWithHrs(row.runDuration)}}</span>
+                                            </td><td>
+                                                <span id="lblPlanned" [hidden]="row.productCode===999999999">{{row.planQuantity | number:'1.0':'en-US'}}</span>
+                                                <span id="lblPlanned" [hidden]="row.productCode!=999999999">0</span>
+                                            </td><td>
+                                                <span id="lblCapacity" [hidden]="row.productCode===999999999">{{row.capacityQuantity | number:'1.0':'en-US'}}</span>
+                                                <span id="lblCapacity" [hidden]="row.productCode!=999999999">0</span>
+                                            </td><td>
+                                                <span id="lblProduced" [hidden]="row.productCode===999999999">{{row.actualQuantity | number:'1.0':'en-US'}}</span>
+                                                <span id="lblProduced" [hidden]="row.productCode!=999999999">0</span>
+                                            </td><td>
+                                                <span id="lblEfficiency" [hidden]="row.productCode===999999999">{{CalForPerEffCol(row)}}</span>
+                                                <span id="lblEfficiency" [hidden]="row.productCode!=999999999">0</span>
+                                            </td>
+                                    </tr>
+                                </tbody></table>
+                            </div>
+                                &nbsp;
+                            </td>                        
+                            </tr>
+                            <tr>
+                            <td colspan="2" style="height: 50px">
+                                <table aria-hidden="true"class="PrintTableSeparator">
+                                    <thead></thead>
+                                <tbody><tr>
+                                <td style="font-weight: bold;text-align: center;">Downtime Data</td>
+                                </tr>
+                                </tbody></table>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td colspan="2">
+                                <div>
+                                <table aria-hidden="true" class="PrintDataTable"  border="1" style="border-collapse:collapse;">
+                                    <thead></thead>
+                                    <tbody><tr>
+                                        <th class="HeaderCell" scope="col">Type</th>
+                                        <th class="HeaderCell" scope="col">Reason Code</th>
+                                        <th class="HeaderCell" scope="col">Reason Detail</th>
+                                        <th class="HeaderCell" scope="col">Duration</th>
+                                        <th class="HeaderCell" scope="col">Labor Released</th>
+                                    </tr>
+                                    <tr *ngFor="let row of printSecondForm">
+                                        <td>
+                                                <span id="lblReasonType">{{row.downtimeReasonTypeDesc}}</span>
+                                            </td><td>
+                                                <span id="lblReasonCode">{{row.downtimeReasonCodeDesc}}</span>
+                                            </td><td>
+                                                <span id="lblReasonDetail">{{row.downtimeReasonDetailDesc}}</span>
+                                            </td><td>
+                                                <span id="lblDTHrs">{{calculateDurationinRowWithHrs(row.downtimeDuration)}}</span>
+                                            </td><td>
+                                                <span id="lblLaborReleased">{{row.labourReleased}}</span>
+                                            </td>
+                                    </tr>
+                                    
+                                </tbody></table>
+                            </div>
+                            </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div> 
+                <div>
+                    <table aria-hidden="true">
+                        <thead></thead>
+                    <tr>
+                        <td colspan="2">
+                            <div>
+                            <table aria-hidden="true" class="PrintDataTable" style="border-collapse:collapse;">
+                                <thead></thead>
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        <button type="button" (click)="CancelPrint()" class="btn btn-reset action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">close</mat-icon>Close</button>
+                                        <button type="button" (click)="printPopUp()"  class="btn btn-save action-btn close-btn-margin"><mat-icon style="cursor: pointer;" class="fa-icon-margin mat-icon-padding">print</mat-icon>Print</button>
+                                        </td>
+
+                                </tr>
+                                
+                            </tbody></table>
+                        </div>
+                        </td>
+                        </tr>
+                    </table>
+                </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- start delete confirmation dialog -->
+<div bsModal #confirmModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 id="dialog-child-name" class="modal-title pull-left" mat-dialog-title>{{confirmationDialogTitle}}</h4>
+			</div>
+			<div class="modal-body"> <div> {{confirmationMsg}}  </div>
+				<div class="row upper-margin" mat-dialog-actions>
+					<div class="col-4">
+						<button #cancelbtn type="button" autofocus (click)="cancelConfirm()" class="btn btn-info"><mat-icon class="icon">close</mat-icon>No</button>
+					</div>
+					<div class="col-6">
+						<button type="button" (click)="isFirstFormSelected?firstFormremoveSelectedRows():secondFormremoveSelectedRows()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>Yes</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end delete confirmation dialog -->
+<!-- start alert confirmation dialog -->
+<div bsModal #alertModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<label id="dialog-child-name" class="modal-title pull-left" mat-dialog-title><mat-icon class="alert-icon">error_outline</mat-icon>Alert</label>
+			</div>
+            <div class="popup-line"></div>
+			<div class="modal-body"> <div> {{rowValidationMsg}}</div>
+				<div class="row upper-margin" mat-dialog-actions>
+					<div class="col-6">
+						<button type="button" autofocus (click)="cancelAlertConform()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>OK</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end alert confirmation dialog -->
+<!-- start product code not found alert confirmation dialog -->
+<div bsModal #productCodeNotFoundModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<label id="dialog-child-name" class="modal-title pull-left" mat-dialog-title><mat-icon class="alert-icon">error_outline</mat-icon>Alert</label>
+			</div>
+            <div class="popup-line"></div>
+            <div class="norecords-available">
+               <p class="p-marin">Product Code not found.</p>
+                <strong>Possible reasons:</strong><br>
+               &nbsp; 1. Invalid Product Code. <br>
+               &nbsp; 2. Product code not mapped with selected line.<br><br>
+                   Please contact KDP Finance Team for further assistance.
+            </div>
+				<div class="row upper-margin btn-no-records" mat-dialog-actions>
+					<div class="col-6">
+						<button type="button" autofocus (click)="cancelNoProdCodeConform()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>OK</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end product code not found alert confirmation dialog -->
+
+<!-- start delete prod run confirmation dialog -->
+<div bsModal #deleteProdRunconfirmModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 id="dialog-child-name" class="modal-title pull-left" mat-dialog-title>{{confirmationProdRunDeleteDialogTitle}}</h4>
+			</div>
+			<div class="modal-body"> <div> {{deleteProdRunconfirmationMsg}}  </div>
+				<div class="row upper-margin" mat-dialog-actions>
+					<div class="col-4">
+						<button #cancelbtn type="button" autofocus (click)="deleteProdRuncancelConfirm()" class="btn btn-info"><mat-icon class="icon">close</mat-icon>No</button>
+					</div>
+					<div class="col-6">
+						<button type="button" (click)="deleteProdRun()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>Yes</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end delete prod run confirmation dialog -->
+<!-- start dummy sku alert dialog -->
+<div bsModal #alertDummySKUModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<label id="dialog-child-name" class="modal-title pull-left" mat-dialog-title><mat-icon class="alert-icon">error_outline</mat-icon>Alert</label>
+			</div>
+            <div class="popup-line"></div>
+			<div class="modal-body"> <div>Dummy SKU alredy entered.Only one dummy SKU is allowed per shift.</div>
+				<div class="row upper-margin" mat-dialog-actions>
+					<div class="col-6">
+						<button type="button" autofocus (click)="cancelDummySKUAlert()" class="btn btn-danger"><mat-icon class="icon">done</mat-icon>OK</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end dummy sku alert dialog -->
+
+<!-- start shift alert dialog -->
+<div bsModal #shiftalertModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-child-name" [config]="{backdrop: 'static',  keyboard: false}">
+	<div class="modal-dialog modal-md modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<label id="dialog-child-name" class="modal-title pull-left" mat-dialog-title><mat-icon class="alert-icon">error_outline</mat-icon>Alert</label>
+			</div>
+            <div class="popup-line"></div>
+            <div class="modal-body"> <div>
+                <div *ngIf="diffInPositive!=0">Added Shift Duration: <b>{{diffInPositive}}</b>  minutes.</div>
+                <div> {{shiftValidationMsg}}</div>
+                <table>
+                <tr>
+                  <th>Shift Name</th>
+                  <th>Shift Duration</th>
+                </tr>
+                <tr *ngFor="let data of prepareShiftDetails">
+                  <td>{{data.shiftName}}</td>
+                  <td>{{data.shiftDuration}} minutes</td>
+                </tr></table></div>
+				<div class="row upper-margin" mat-dialog-actions>
+                    <div class="modal-header">
+                        <h4 id="dialog-child-name" class="modal-title pull-left" mat-dialog-title>You still want to proceed?</h4>
+                    </div>
+                    <div class="row alert-btn-margin-right">
+                        <button #cancelbtn type="button" autofocus (click)="cancelshiftDetailsAlertConform()" class="btn btn-info"><mat-icon class="icon">close</mat-icon>No</button>
+                        <button type="button" (click)="clickForNext()" class="btn btn-danger shift-alert-btn"><mat-icon class="icon">done</mat-icon>Yes</button>
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end shift alert dialog  -->
+

@@ -1,0 +1,49 @@
+steps: 
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/UI/ClientApp:latest/Dockerfile', '-t', 'gcr.io/$PROJECT_ID/app:$COMMIT_SHA', '-t', 'gcr.io/$PROJECT_ID/app:$BUILD_ID', '.']
+  id: 'build-image-app'
+  waitFor: ['-']  # The '-' indicates that this step begins immediately.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/app:$COMMIT_SHA']
+  id: 'push-image-to-container-registry'
+  waitFor: ['build-image-app']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'run'
+  - 'deploy'
+  - 'myawesomeapp'
+  - '--image'
+  - 'gcr.io/$PROJECT_ID/app:$COMMIT_SHA'
+  - '--region'
+  - 'us-east4'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
+  waitFor: ['push-image-to-container-registry']
+  id: 'deploy-to-cloud-run'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  volumes:
+  - name: 'vol1'
+    path: '/volume'
+  entrypoint: '/bin/bash'
+  args: ['-c', 'gcloud builds log $BUILD_ID > /volume/buildlog.log']
+  waitFor: ['deploy-to-cloud-run']
+  id: 'fetch-build-log'
+- name: 'bash'
+  volumes:
+  - name: 'vol1'
+    path: '/volume'
+  args: ['tar', '-czvf', 'artifacts.tar.gz', 'app1', 'requirements.txt', '/volume/buildlog.log']
+  waitFor: ['fetch-build-log']
+  id: 'create-artifacts-zip'
+logsBucket: 'gs://logs-codebuild-$PROJECT_ID/$BUILD_ID'
+options:
+  logging: GCS_ONLY
+images:
+- 'gcr.io/$PROJECT_ID/app:latest'
+- 'gcr.io/$PROJECT_ID/app:$COMMIT_SHA'
+- 'gcr.io/$PROJECT_ID/app:$BUILD_ID'
+artifacts:
+  objects:
+    location: 'gs://devops-$PROJECT_ID/$BUILD_ID'
+    paths: ['artifacts.tar.gz']
